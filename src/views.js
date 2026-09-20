@@ -17,10 +17,10 @@ import {
   showToast, 
   customCollections, 
   addItemToCollection, 
-  removeItemFromCollection,
-  deleteCustomCollection,
-  flushDeferredRender,
-  queueDeferredRender
+  removeItemFromCollection, 
+  deleteCustomCollection, 
+  flushDeferredRender, 
+  queueDeferredRender 
 } from './state.js';
 
 import { 
@@ -147,8 +147,6 @@ function matchesSmartSearch(query, item) {
 // 1. GESTOR PRINCIPAL DE PESTAÑAS (SUSPENSIÓN DE HARDWARE Y RENDERS PROTEGIDOS)
 // ----------------------------------------------------------------------------
 export function renderActiveView() {
-  // Si el usuario está realizando un gesto físico de arrastre, retenemos el render
-  // para no desmontar elementos activos de WebView2 y evitar cuelgues.
   if (state.isDragging) {
     queueDeferredRender(renderActiveView);
     return;
@@ -191,11 +189,16 @@ export function renderActiveView() {
     renderStatsDashboard();
   }
 
+  // Protección anti-excepciones para instancias de librerías externas
   if (graphInstance) {
     if (state.currentActiveView === 'graph') {
-      graphInstance.resumeAnimation();
+      if (typeof graphInstance.resumeAnimation === 'function') {
+        graphInstance.resumeAnimation();
+      }
     } else {
-      graphInstance.pauseAnimation();
+      if (typeof graphInstance.pauseAnimation === 'function') {
+        graphInstance.pauseAnimation();
+      }
     }
   }
 
@@ -258,9 +261,7 @@ function buildCardElement(item, viewMode) {
     </button>
   ` : '';
 
-  // ==========================================================================
-  // A) MURO DE PORTADAS LETTERBOXD (MEDIO Y MASIVO/COMPACTO)
-  // ==========================================================================
+  // A) MURO DE PORTADAS LETTERBOXD
   if (viewMode === 'poster-medium' || viewMode === 'poster-massive') {
     const card = document.createElement('div');
     card.className = `media-poster-card type-${item.type} mode-${viewMode}`;
@@ -294,9 +295,7 @@ function buildCardElement(item, viewMode) {
     return card;
   }
 
-  // ==========================================================================
   // B) CUADRÍCULA NORMAL CON FICHA COMPLETA
-  // ==========================================================================
   if (viewMode === 'grid') {
     const card = document.createElement('div');
     card.className = `media-card type-${item.type}`;
@@ -351,9 +350,7 @@ function buildCardElement(item, viewMode) {
     return card;
   } 
 
-  // ==========================================================================
   // C) VISTA LISTA COMPACTA
-  // ==========================================================================
   else {
     const row = document.createElement('div');
     row.className = 'media-list-row';
@@ -458,7 +455,6 @@ function updateFloatingDropzoneUI() {
     dropzone.className = 'floating-remove-dropzone';
     document.querySelector('.main-content')?.appendChild(dropzone);
 
-    // Eventos nativos de zona de soltar (Dropzone)
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
@@ -550,7 +546,7 @@ export function renderCollection() {
 }
 
 // ----------------------------------------------------------------------------
-// 3. RENDERIZADO DE COLECCIONES EN BARRA LATERAL
+// 3. RENDERIZADO DE COLECCIONES EN BARRA LATERAL (CONTEO O(N))
 // ----------------------------------------------------------------------------
 export function renderSidebarCollections() {
   const collectionsList = document.getElementById('custom-collections-list');
@@ -561,10 +557,26 @@ export function renderSidebarCollections() {
     return;
   }
 
+  // Conteo en una sola pasada O(N) para máxima velocidad
+  const countsMap = new Map();
+  customCollections.forEach(c => countsMap.set(c, 0));
+
+  for (let i = 0; i < library.length; i++) {
+    const itemCols = library[i].collections;
+    if (Array.isArray(itemCols)) {
+      for (let j = 0; j < itemCols.length; j++) {
+        const col = itemCols[j];
+        if (countsMap.has(col)) {
+          countsMap.set(col, countsMap.get(col) + 1);
+        }
+      }
+    }
+  }
+
   const fragment = document.createDocumentFragment();
 
   customCollections.forEach(colName => {
-    const count = library.filter(i => Array.isArray(i.collections) && i.collections.includes(colName)).length;
+    const count = countsMap.get(colName) || 0;
     const isActive = state.activeCollectionFilter === colName;
 
     const row = document.createElement('div');
@@ -599,7 +611,7 @@ function initCollectionEventDelegation() {
   mediaContainer.dataset.delegated = 'true';
 
   mediaContainer.addEventListener('click', (e) => {
-    // 1. Quitar de la colección activa (Botón de 1 solo clic)
+    // 1. Quitar de la colección activa
     const removeColBtn = e.target.closest('.btn-remove-from-collection');
     if (removeColBtn) {
       e.stopPropagation();
@@ -661,11 +673,10 @@ function initCollectionEventDelegation() {
     }
   });
 
-  // GESTO NATIVO: INICIO DE ARRASTRE
   mediaContainer.addEventListener('dragstart', (e) => {
     const card = e.target.closest('.media-card, .media-list-row, .media-poster-card');
     if (card && card.dataset.id) {
-      state.isDragging = true; // Activa el semáforo para retener cualquier render asíncrono
+      state.isDragging = true;
       draggedItemId = card.dataset.id;
       e.dataTransfer.setData('text/plain', card.dataset.id);
       e.dataTransfer.effectAllowed = 'copyMove';
@@ -676,7 +687,6 @@ function initCollectionEventDelegation() {
     }
   });
 
-  // GESTO NATIVO: FIN DE ARRASTRE (ÉXITO O CANCELACIÓN)
   mediaContainer.addEventListener('dragend', (e) => {
     state.isDragging = false;
     draggedItemId = null;
@@ -690,7 +700,6 @@ function initCollectionEventDelegation() {
       dropzone.classList.remove('drag-active', 'drag-over');
     }
 
-    // Despachar cualquier render que la IA o un servicio haya intentado hacer en segundo plano
     flushDeferredRender();
   });
 }
@@ -749,8 +758,7 @@ function initSidebarCollectionsDelegation() {
       e.stopPropagation();
       const colName = deleteBtn.dataset.collection;
       deleteCustomCollection(colName);
-      renderSidebarCollections();
-      renderCollection();
+      renderActiveView(); // Sincronización atómica con el router principal
       showToast(`Colección "${colName}" eliminada.`);
       return;
     }
@@ -851,7 +859,7 @@ export function renderCalendar() {
         ? `<img src="${escapeHtml(it.coverUrl)}" alt="${safeTitle}" class="cal-mini-thumb" loading="lazy" decoding="async" onerror="this.style.display='none';" />`
         : ``;
 
-      const creator = escapeHtml(it.details?.author || item.details?.director || it.details?.artist || it.creator || '');
+      const creator = escapeHtml(it.details?.author || it.details?.director || it.details?.artist || it.creator || '');
       const statusIcon = getStatusIconName(it.type, it.status);
 
       const ratingHtml = it.userRating 
@@ -1136,7 +1144,7 @@ export function initOrUpdateGraph() {
 }
 
 // ----------------------------------------------------------------------------
-// 8. INICIALIZACIÓN DE EVENTOS DE VISTAS
+// 8. INICIALIZACIÓN DE EVENTOS DE VISTAS CON RED DE SEGURIDAD
 // ----------------------------------------------------------------------------
 export function initViewsEvents() {
   if (viewsEventsInitialized) return;
@@ -1145,8 +1153,8 @@ export function initViewsEvents() {
   initCollectionEventDelegation();
   initSidebarCollectionsDelegation();
 
-  // Red de seguridad a nivel de ventana: limpia el arrastre si se cancela fuera o con ESC
-  window.addEventListener('dragend', () => {
+  // Red de rescate global para garantizar que isDragging nunca quede atascado en true
+  const resetDraggingState = () => {
     if (state.isDragging) {
       state.isDragging = false;
       draggedItemId = null;
@@ -1157,7 +1165,11 @@ export function initViewsEvents() {
       }
       flushDeferredRender();
     }
-  });
+  };
+
+  window.addEventListener('dragend', resetDraggingState);
+  window.addEventListener('mouseup', resetDraggingState);
+  window.addEventListener('drop', resetDraggingState);
 
   document.getElementById('btn-clear-collection-filter')?.addEventListener('click', () => {
     state.activeCollectionFilter = null;

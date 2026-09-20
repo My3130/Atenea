@@ -162,21 +162,30 @@ async function saveLibraryToIDB() {
 }
 
 /**
- * Guarda la biblioteca en IndexedDB (asíncrono sin límite de 5MB) y mantiene
- * una copia de respaldo en localStorage. Protege el hilo de la UI si hay Drag & Drop activo.
+ * Guarda la biblioteca en IndexedDB de forma asíncrona no bloqueante y delega
+ * la copia de seguridad de localStorage a un hilo ocioso (requestIdleCallback)
+ * para garantizar cero congelamientos de interfaz.
  */
 export function saveLibrary(onSavedCallback) {
+  // Persistencia principal asíncrona en IndexedDB
   saveLibraryToIDB().catch(() => {});
 
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(library));
-  } catch (e) {
-    console.warn('localStorage lleno, datos protegidos en IndexedDB.');
+  // Delegar el stringify pesado de localStorage a momentos de ocio de CPU
+  const persistLocalStorageIdle = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(library));
+    } catch (e) {
+      console.warn('localStorage lleno o inaccesible, datos protegidos en IndexedDB.');
+    }
+  };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(persistLocalStorageIdle, { timeout: 1000 });
+  } else {
+    setTimeout(persistLocalStorageIdle, 0);
   }
 
   if (typeof onSavedCallback === 'function') {
-    // Si el usuario está físicamente arrastrando una tarjeta, retenemos el callback visual
-    // para evitar que el vaciado del DOM destruya el nodo activo y congele Chromium.
     if (state.isDragging) {
       pendingDeferredRender = onSavedCallback;
     } else {
@@ -310,12 +319,13 @@ export function deleteCustomCollection(name) {
   }
 
   let modified = false;
-  library.forEach(item => {
-    if (item.collections && Array.isArray(item.collections) && item.collections.includes(name)) {
+  for (let i = 0; i < library.length; i++) {
+    const item = library[i];
+    if (Array.isArray(item.collections) && item.collections.includes(name)) {
       item.collections = item.collections.filter(c => c !== name);
       modified = true;
     }
-  });
+  }
 
   if (modified) {
     saveLibrary();
@@ -667,7 +677,6 @@ export function canonicalizeTag(tag) {
     return GENRE_CANONICAL_MAP[lower];
   }
 
-  // Conversión inteligente a Title Case respetando espacios y guiones
   return clean
     .split(/([ -])/)
     .map(word => {
@@ -751,7 +760,6 @@ export function canonicalizeCountry(rawCountry = '') {
 
   const lower = clean.toLowerCase();
 
-  // 1. Si está en el mapa de alias
   const mappedIso = COUNTRY_ALIAS_TO_ISO[lower];
   if (mappedIso && regionNamesEs) {
     try {
@@ -762,7 +770,6 @@ export function canonicalizeCountry(rawCountry = '') {
     } catch (e) {}
   }
 
-  // 2. Si es un código ISO de 2 letras directo (ej: "IE", "AU", "JP", "US")
   if (clean.length === 2 && regionNamesEs) {
     try {
       const direct = regionNamesEs.of(clean.toUpperCase());
@@ -779,7 +786,8 @@ export function canonicalizeCountry(rawCountry = '') {
 
 export function sanitizeLibraryData() {
   let modified = false;
-  library.forEach(item => {
+  for (let i = 0; i < library.length; i++) {
+    const item = library[i];
     if (!item.collections || !Array.isArray(item.collections)) {
       item.collections = [];
       modified = true;
@@ -798,7 +806,7 @@ export function sanitizeLibraryData() {
       item.tags = ['General'];
       modified = true;
     }
-  });
+  }
 
   if (modified) {
     saveLibrary();
