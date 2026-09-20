@@ -1,0 +1,295 @@
+/* ============================================================================
+   SRC/STYLES/DIALOGS/MODAL-BULK.CSS - Ingesta Masiva y Tabla Staging
+   - Formulario de entrada rápida de texto/JSON y copia de prompt de IA
+   - Tabla interactiva con scroll optimizado y marcadores de duplicados
+   ============================================================================ */
+
+#bulk-ingest-modal.modal-xl {
+  width: min(1100px, 95vw);
+}
+
+.bulk-modal-box {
+  width: min(1100px, 95vw) !important;
+  max-width: 95vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 28px;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.70);
+  border-radius: var(--radius);
+  contain: paint layout;
+  isolation: isolate;
+  overscroll-behavior-y: contain;
+}
+
+.bulk-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.bulk-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bulk-badge-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.bulk-badge-icon .lucide { 
+  width: 22px; 
+  height: 22px; 
+}
+
+.bulk-title-wrap h3 { 
+  font-size: 1.15rem; 
+  font-weight: 700; 
+  color: var(--text-main); 
+}
+
+.bulk-title-wrap p { 
+  font-size: 0.76rem; 
+  color: var(--text-muted); 
+}
+
+.btn-copy-prompt-action {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-copy-prompt-action:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.bulk-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bulk-textarea {
+  width: 100%;
+  height: 110px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  resize: vertical;
+  outline: none;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  font-family: 'Inter', monospace;
+}
+
+.bulk-textarea:focus { 
+  border-color: var(--accent); 
+}
+
+.bulk-parse-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.btn-parse-action {
+  padding: 9px 16px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.bulk-parse-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bulk-staging-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg-main);
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  contain: layout;
+}
+
+.bulk-staging-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bulk-staging-header h4 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-main);
+}
+
+.bulk-staging-table-wrap {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-card);
+  contain: layout paint;
+  overscroll-behavior-y: contain;
+}
+
+.bulk-staging-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.bulk-staging-table thead th {
+  background: var(--bg-sidebar);
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.74rem;
+  user-select: none;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.bulk-staging-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.12s ease;
+}
+
+.bulk-staging-table tbody tr:hover { 
+  background: var(--bg-card-hover); 
+}
+
+.bulk-staging-table tbody tr.is-duplicate { 
+  background: rgba(245, 158, 11, 0.08); 
+}
+
+.bulk-staging-table td {
+  padding: 6px 8px;
+  vertical-align: middle;
+}
+
+.bulk-row-input {
+  width: 100%;
+  padding: 5px 6px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 4px;
+  font-size: 0.76rem;
+  outline: none;
+}
+
+.bulk-row-input:focus { 
+  border-color: var(--accent); 
+}
+
+.bulk-row-type {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 5px 6px;
+  border-radius: 4px;
+  font-size: 0.76rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.dup-badge-pill {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dup-badge-pill.new {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--status-done);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.dup-badge-pill.warning {
+  background: rgba(245, 158, 11, 0.18);
+  color: var(--star-gold);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.btn-bulk-remove-row {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.8rem;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.btn-bulk-remove-row:hover { 
+  color: var(--status-todo); 
+  background: rgba(239, 68, 68, 0.15); 
+}
+
+.bulk-empty-staging {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 34px 20px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.bulk-empty-staging .lucide { 
+  width: 28px; 
+  height: 28px; 
+  color: var(--accent); 
+  opacity: 0.7; 
+}

@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atenea</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Mapas y Globo (Local Offline) -->
+  <link rel="stylesheet" href="./assets/vendor/leaflet.css" />
+  <script src="./assets/vendor/leaflet.js"></script>
+  <script src="./assets/vendor/globe.gl.min.js"></script>
+
+  <!-- Grafo de Conexiones (Local Offline) -->
+  <script src="./assets/vendor/force-graph.min.js"></script>
+
+  <!-- Iconos Lucide y Compresor ZIP (Local Offline) -->
+  <script src="./assets/vendor/lucide.min.js"></script>
+  <script src="./assets/vendor/jszip.min.js"></script>
+</head>
+<body>
+
+  <!-- ========================================================================
+       0. CAPA GLOBAL DE FONDO EN VIDEO AMBIENTAL / IMAGEN + DIFUSOR DE CONTRASTE
+       ======================================================================== -->
+  <div class="bg-video-container bg-hidden" id="bg-video-container" aria-hidden="true">
+    <video 
+      id="bg-video" 
+      autoplay 
+      loop 
+      muted 
+      playsinline 
+      preload="auto" 
+      disablepictureinpicture 
+      disableremoteplayback 
+      tabindex="-1">
+    </video>
+    <img 
+      id="bg-image" 
+      class="hidden" 
+      alt="Fondo de pantalla personalizado" 
+      style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; pointer-events:none;" 
+    />
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- 1. BARRA DE TÍTULO SUPERIOR DEDICADA (ESTILO OBSIDIAN / VS CODE) -->
+  <div class="custom-titlebar" data-tauri-drag-region>
+    <div class="titlebar-drag-area" data-tauri-drag-region></div>
+    <div class="window-controls">
+      <button id="win-btn-minimize" class="win-btn" title="Minimizar">&#x2014;</button>
+      <button id="win-btn-maximize" class="win-btn" title="Maximizar">&#x25A2;</button>
+      <button id="win-btn-close" class="win-btn win-btn-close" title="Cerrar">&#x2715;</button>
+    </div>
+  </div>
+
+  <!-- 2. ESTRUCTURA COMPLETA DE LA APP -->
+  <div class="app-layout" id="app-layout">
+    
+    <!-- BARRA LATERAL IZQUIERDA -->
+    <aside class="sidebar" id="sidebar-left">
+      <div class="sidebar-header">
+        <button id="btn-collapse-left" class="btn-toggle-sidebar" title="Ocultar menú lateral (Ctrl+B)">
+          <i data-lucide="chevron-left"></i>
+        </button>
+        
+        <div class="logo" id="header-logo-area" title="Configuración General">
+          <h2>
+            <img src="./assets/logo.png" class="app-custom-logo" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';" />
+            <i data-lucide="sparkles" class="logo-icon fallback-logo" style="display:none;"></i>
+            <span id="sidebar-vault-name">Mi mundo</span>
+          </h2>
+        </div>
+      </div>
+
+      <nav class="nav-filters">
+        <!-- PERSPECTIVAS Y VISTAS -->
+        <p class="section-title">PERSPECTIVAS</p>
+        <button class="tab-btn active" data-view="library"><i data-lucide="grid"></i> Biblioteca <small style="margin-left:auto; opacity:0.5; font-size:0.65rem;">Ctrl+1</small></button>
+        <button class="tab-btn" data-view="timeline"><i data-lucide="clock"></i> Cronología <small style="margin-left:auto; opacity:0.5; font-size:0.65rem;">Ctrl+2</small></button>
+        <button class="tab-btn" data-view="graph"><i data-lucide="share-2"></i> Grafo <small style="margin-left:auto; opacity:0.5; font-size:0.65rem;">Ctrl+3</small></button>
+        <button class="tab-btn" data-view="map"><i data-lucide="globe"></i> Mapa / Globo <small style="margin-left:auto; opacity:0.5; font-size:0.65rem;">Ctrl+4</small></button>
+        <button class="tab-btn" data-view="stats"><i data-lucide="bar-chart-2"></i> Estadísticas <small style="margin-left:auto; opacity:0.5; font-size:0.65rem;">Ctrl+5</small></button>
+
+        <!-- COLECCIONES ESPECIALES Y PERSONALIZADAS -->
+        <div class="sidebar-section-header">
+          <p class="section-title">COLECCIONES</p>
+          <button type="button" id="btn-add-collection" class="btn-mini-add-collection" title="Crear nueva colección">
+            <i data-lucide="folder-plus"></i>
+          </button>
+        </div>
+        <button class="filter-btn btn-wishlist-filter" id="filter-wishlist" data-special="wishlist"><i data-lucide="sparkles"></i> Lista de Deseos</button>
+        <div id="custom-collections-list" class="custom-collections-list"></div>
+
+        <!-- ESTADO DE CONSUMO -->
+        <p class="section-title">ESTADO</p>
+        <button class="filter-btn" data-status="todo"><i data-lucide="bookmark"></i> Por empezar</button>
+        <button class="filter-btn" data-status="in_progress"><i data-lucide="loader-2"></i> En progreso</button>
+        <button class="filter-btn" data-status="completed"><i data-lucide="check-circle-2"></i> Terminado</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="btn-open-bulk" class="settings-btn" style="margin-bottom:6px;"><i data-lucide="file-input"></i> Ingesta Masiva / Notas</button>
+        <button id="btn-open-wrap" class="settings-btn btn-wrap-highlight" style="margin-bottom:6px;"><i data-lucide="sparkles"></i> Anuario Cultural</button>
+        <button id="btn-toggle-theme" class="settings-btn" style="margin-bottom:6px;"><i data-lucide="sun"></i> Modo Claro / Oscuro</button>
+        <button id="btn-open-general-settings" class="settings-btn"><i data-lucide="sliders"></i> Configuración</button>
+      </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="main-content">
+      <header class="top-nav-bar">
+        <div class="nav-left-tools">
+          <button id="btn-expand-left" class="btn-floating-toggle hidden" title="Mostrar menú lateral (Ctrl+B)">
+            <i data-lucide="menu"></i>
+          </button>
+          
+          <!-- PESTAÑAS HORIZONTALES DE MEDIO / DISCIPLINA -->
+          <div class="filter-tabs" id="media-filter-tabs">
+            <button class="filter-btn active" data-filter="all"><i data-lucide="layers"></i> Todos</button>
+            <button class="filter-btn" data-filter="book"><i data-lucide="book"></i> Libros</button>
+            <button class="filter-btn" data-filter="movie"><i data-lucide="film"></i> Películas</button>
+            <button class="filter-btn" data-filter="music"><i data-lucide="disc"></i> Música</button>
+          </div>
+        </div>
+
+        <div class="nav-center-search">
+          <input type="text" id="search-input" placeholder="Buscar (Ctrl+F)..." />
+        </div>
+
+        <div class="nav-right-tools">
+          <select id="sort-select" class="sort-dropdown" title="Ordenar por">
+            <option value="recent">🕒 Recientes</option>
+            <option value="year-desc">📅 Año: Nuevo a Antiguo</option>
+            <option value="year-asc">📅 Año: Antiguo a Nuevo</option>
+            <option value="rating-desc">⭐ Mejor Calificados</option>
+            <option value="title-asc">🔤 Título (A - Z)</option>
+          </select>
+
+          <div class="view-mode-toggle" id="view-mode-toggle">
+            <button id="btn-view-grid" class="view-toggle-btn active" title="Vista Cuadrícula (Ctrl+G)"><i data-lucide="layout-grid"></i></button>
+            <button id="btn-view-list" class="view-toggle-btn" title="Vista Lista (Ctrl+L)"><i data-lucide="list"></i></button>
+          </div>
+
+          <button id="btn-open-manual-add" class="btn-primary-add" title="Nueva Obra (Ctrl+N)"><i data-lucide="plus"></i> Nueva Obra</button>
+          <button id="btn-expand-right" class="btn-floating-toggle hidden" title="Mostrar Asistente (Ctrl+J)"><i data-lucide="panel-right-open"></i> Asistente</button>
+        </div>
+      </header>
+
+      <div class="sub-header">
+        <div class="stats-summary" id="stats-summary">Cargando colección...</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div id="active-collection-chip" class="active-tag-chip hidden" style="border-color: var(--accent); background: rgba(124, 58, 237, 0.2);">
+            <span id="active-collection-name">Colección</span>
+            <button id="btn-clear-collection-filter" title="Quitar filtro de colección">✕</button>
+          </div>
+          <div id="active-tag-chip" class="active-tag-chip hidden">
+            <span id="active-tag-name">Tag</span>
+            <button id="btn-clear-tag-filter" title="Quitar filtro">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA 1: COLECCIÓN -->
+      <section class="media-container view-grid" id="media-container"></section>
+
+      <!-- VISTA 2: CRONOLOGÍA -->
+      <section class="timeline-view-container hidden" id="timeline-view">
+        <div class="timeline-toolbar">
+          <div class="timeline-mode-toggle">
+            <button id="btn-timeline-calendar" class="t-toggle-btn active"><i data-lucide="calendar"></i> Vista Calendario</button>
+            <button id="btn-timeline-consumption" class="t-toggle-btn"><i data-lucide="calendar-range"></i> Diario Vertical</button>
+            <button id="btn-timeline-release" class="t-toggle-btn"><i data-lucide="history"></i> Historia (Año Estreno)</button>
+          </div>
+        </div>
+
+        <div class="calendar-wrapper" id="calendar-wrapper">
+          <div class="calendar-nav-bar">
+            <div class="calendar-month-controls">
+              <button id="btn-cal-prev" class="btn-cal-nav"><i data-lucide="chevron-left"></i></button>
+              <h3 id="calendar-month-title">Mes Año</h3>
+              <button id="btn-cal-next" class="btn-cal-nav"><i data-lucide="chevron-right"></i></button>
+              <button id="btn-cal-today" class="btn-cal-today">Hoy</button>
+            </div>
+
+            <div class="calendar-type-filters">
+              <button class="cal-filter-btn active" data-caltype="all">Todos</button>
+              <button class="cal-filter-btn" data-caltype="book">Libros</button>
+              <button class="cal-filter-btn" data-caltype="movie">Cine</button>
+              <button class="cal-filter-btn" data-caltype="music">Música</button>
+            </div>
+          </div>
+
+          <div class="calendar-grid-header">
+            <div>LU</div><div>MA</div><div>MI</div><div>JU</div><div>VI</div><div>SA</div><div>DO</div>
+          </div>
+          <div class="calendar-grid-days" id="calendar-grid-days"></div>
+        </div>
+
+        <div class="timeline-stream hidden" id="timeline-stream"></div>
+      </section>
+
+      <!-- VISTA 3: GRAFO DE CONEXIONES CULTURALES CON FILTRO DE MEDIOS -->
+      <section class="graph-view-container hidden" id="graph-view">
+        <div class="graph-toolbar">
+          <div class="graph-title-info">
+            <h3><i data-lucide="share-2"></i> Grafo de Conexiones Culturales</h3>
+            <span id="graph-stats-text" class="map-stats-pill">0 nodos enlazados</span>
+          </div>
+
+          <div class="graph-type-filters">
+            <button class="graph-filter-btn active" data-graphtype="all">Todos</button>
+            <button class="graph-filter-btn" data-graphtype="book">Libros</button>
+            <button class="graph-filter-btn" data-graphtype="movie">Cine</button>
+            <button class="graph-filter-btn" data-graphtype="music">Música</button>
+          </div>
+        </div>
+        <div id="cultural-graph-canvas" class="cultural-graph-canvas"></div>
+      </section>
+
+      <!-- VISTA 4: ATLAS CULTURAL -->
+      <section class="map-view-container hidden" id="map-view">
+        <div class="map-toolbar">
+          <div class="map-title-info">
+            <div class="globe-mode-toggle">
+              <button id="btn-proj-3d" class="proj-toggle-btn active"><i data-lucide="globe"></i> Globo 3D</button>
+              <button id="btn-proj-2d" class="proj-toggle-btn"><i data-lucide="map"></i> Mapa 2D</button>
+            </div>
+            <span id="map-stats-text" class="map-stats-pill">0 países explorados</span>
+          </div>
+
+          <div class="map-epoch-bar">
+            <span class="epoch-label"><i data-lucide="history"></i> Época:</span>
+            <div class="map-epoch-filters">
+              <button class="map-epoch-btn active" data-epoch="all">Todos</button>
+              <button class="map-epoch-btn" data-epoch="antiquity-1899">&lt; S. XX</button>
+              <button class="map-epoch-btn" data-epoch="1900-1949">1900–49</button>
+              <button class="map-epoch-btn" data-epoch="1950-1979">1950–79</button>
+              <button class="map-epoch-btn" data-epoch="1980-1999">1980–99</button>
+              <button class="map-epoch-btn" data-epoch="2000-present">S. XXI</button>
+            </div>
+          </div>
+
+          <div class="map-type-filters">
+            <button class="map-filter-btn active" data-maptype="all">Todos</button>
+            <button class="map-filter-btn" data-maptype="book">Libros</button>
+            <button class="map-filter-btn" data-maptype="movie">Cine</button>
+            <button class="map-filter-btn" data-maptype="music">Música</button>
+          </div>
+        </div>
+
+        <div id="cultural-globe-canvas" class="cultural-globe-canvas"></div>
+        <div id="cultural-map-canvas" class="cultural-map-canvas hidden"></div>
+      </section>
+
+      <!-- VISTA 5: ESTADÍSTICAS CULTURALES -->
+      <section class="stats-view-container hidden" id="stats-view">
+        <div class="stats-cards-grid">
+          <div class="stat-box">
+            <span class="stat-icon"><i data-lucide="book"></i></span>
+            <div class="stat-val" id="stat-count-books">0</div>
+            <div class="stat-label">Libros Registrados</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-icon"><i data-lucide="film"></i></span>
+            <div class="stat-val" id="stat-count-movies">0</div>
+            <div class="stat-label">Películas Vistas</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-icon"><i data-lucide="disc"></i></span>
+            <div class="stat-val" id="stat-count-music">0</div>
+            <div class="stat-label">Discos Escuchados</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-icon"><i data-lucide="globe"></i></span>
+            <div class="stat-val" id="stat-count-countries">0</div>
+            <div class="stat-label">Países Explorados</div>
+          </div>
+        </div>
+
+        <div class="stats-details-layout">
+          <div class="stats-panel">
+            <h4><i data-lucide="flag"></i> Top Países con más Obras</h4>
+            <div class="stats-ranking-list" id="stats-top-countries"></div>
+          </div>
+
+          <div class="stats-panel">
+            <h4><i data-lucide="tag"></i> Etiquetas & Géneros Principales</h4>
+            <div class="stats-ranking-list" id="stats-top-tags"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- BARRA LATERAL DERECHA (DUAL: CATÁLOGO RÁPIDO + ASISTENTE IA) -->
+    <aside class="ai-sidebar" id="sidebar-right">
+      <div class="ai-header">
+        <div class="sidebar-mode-switcher">
+          <button type="button" id="btn-tab-quick" class="mode-tab-btn active" title="Búsqueda directa en bases de datos">
+            <i data-lucide="zap"></i> Catálogo Rápido
+          </button>
+          <button type="button" id="btn-tab-ai" class="mode-tab-btn" title="Chat y Visión Multimodal con Gemini">
+            <i data-lucide="sparkles"></i> Asistente IA
+          </button>
+        </div>
+        <button id="btn-collapse-right" class="btn-toggle-sidebar" title="Ocultar asistente (Ctrl+J)">
+          <i data-lucide="chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- PANEL 1: CATÁLOGO RÁPIDO -->
+      <div class="quick-catalog-panel" id="quick-catalog-panel">
+        <div class="quick-catalog-header">
+          <h4><i data-lucide="database"></i> Descarga de Metadatos</h4>
+          <p>Busca en Google Books, OMDb (Cine) y Discogs/MusicBrainz con carátulas, edición y tracklists.</p>
+        </div>
+
+        <form id="quick-search-form" class="quick-search-form">
+          <div class="form-row">
+            <label>Medio / Disciplina:</label>
+            <div class="quick-type-selector">
+              <label class="quick-radio"><input type="radio" name="quick-type" value="book" checked /> <span>Libro</span></label>
+              <label class="quick-radio"><input type="radio" name="quick-type" value="movie" /> <span>Película</span></label>
+              <label class="quick-radio"><input type="radio" name="quick-type" value="music" /> <span>Música</span></label>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="quick-title-input">Título o ISBN:</label>
+            <input type="text" id="quick-title-input" placeholder="Ej: Trilce, 1984, Cien años de soledad..." required />
+          </div>
+
+          <div class="form-row">
+            <label for="quick-creator-input">Autor o Autora (Opcional):</label>
+            <input type="text" id="quick-creator-input" placeholder="Ej: César Vallejo, George Orwell..." />
+          </div>
+
+          <div class="form-row" id="quick-publisher-row">
+            <label for="quick-publisher-input">Editorial (Opcional):</label>
+            <input type="text" id="quick-publisher-input" placeholder="Ej: Cátedra, Alianza, Penguin..." />
+          </div>
+
+          <button type="submit" id="btn-quick-search" class="btn-quick-submit">
+            <i data-lucide="search"></i> Buscar Ediciones
+          </button>
+        </form>
+
+        <div class="quick-status-area" id="quick-status-area">
+          <div class="quick-tip-card">
+            <i data-lucide="info"></i>
+            <span>Se abrirá el selector con todas las ediciones, carátulas, ISBN y detalles editoriales.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL 2: ASISTENTE IA GEMINI VISION -->
+      <div class="ai-panel hidden" id="ai-panel">
+        <div class="chat-messages" id="chat-messages">
+          <div class="message system-msg">
+            Hola. Escríbeme o <strong>adjunta/pega una imagen</strong> (foto de portada, lomo o captura de pantalla) y registraré la obra automáticamente.
+          </div>
+        </div>
+
+        <div id="chat-image-preview-container" class="chat-image-preview-container hidden">
+          <img id="chat-image-preview" src="" alt="Adjunto" />
+          <button type="button" id="btn-remove-attachment" title="Quitar imagen">✕</button>
+        </div>
+
+        <form id="chat-form" class="chat-input-container">
+          <div class="chat-input-row">
+            <label class="btn-attach-img" title="Subir captura o foto de portada">
+              <i data-lucide="paperclip"></i>
+              <input type="file" id="chat-file-input" accept="image/*" style="display:none;" />
+            </label>
+            <textarea id="chat-input" placeholder="Escribe o pega una captura (Ctrl+V)..." rows="2"></textarea>
+          </div>
+          <button type="submit" id="chat-send-btn"><i data-lucide="send"></i> Enviar</button>
+        </form>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ==================== MODALES ==================== -->
+
+  <!-- 0. MODAL BIENVENIDA -->
+  <dialog id="welcome-modal" class="modal modal-md">
+    <div class="modal-box welcome-box">
+      <div class="welcome-hero-icon">
+        <i data-lucide="sparkles"></i>
+      </div>
+      <h3>Bienvenido a Atenea</h3>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin: 6px 0 16px 0; text-align:center;">
+        Tu centro cultural y biblioteca personal. ¿Cómo deseas llamar a tu espacio?
+      </p>
+
+      <div class="form-row" style="text-align:left; width:100%;">
+        <label for="welcome-vault-input">Nombre de tu Centro Cultural:</label>
+        <input type="text" id="welcome-vault-input" value="Mi mundo" placeholder="Ej: Mi mundo, Ágora de Alejandría..." required />
+      </div>
+
+      <button type="button" id="btn-confirm-welcome" class="btn-primary" style="width:100%; justify-content:center; margin-top:16px; padding:10px;">
+        <i data-lucide="arrow-right"></i> Entrar a Atenea
+      </button>
+    </div>
+  </dialog>
+
+  <!-- 1. MODAL ESTILO CALIBRE -->
+  <dialog id="calibre-modal" class="modal modal-xl">
+    <div class="modal-box calibre-modal-box">
+      <button class="modal-close-x" id="btn-close-calibre">✕</button>
+      
+      <div class="calibre-header">
+        <div class="calibre-title-wrap">
+          <i data-lucide="download-cloud" class="calibre-header-icon"></i>
+          <div>
+            <h3>Descarga de Metadatos y Ediciones</h3>
+            <p id="calibre-query-subtitle">Buscando en bases de datos abiertas...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="calibre-layout">
+        <div class="calibre-table-col">
+          <div class="calibre-table-header-row">
+            <span class="col-num">#</span>
+            <span class="col-thumb">Img</span>
+            <span class="col-title-creator">Título y Creador</span>
+            <span class="col-year">Año</span>
+            <span class="col-publisher">Editorial / Sello / Estudio</span>
+          </div>
+          <div class="calibre-results-list" id="calibre-results-list"></div>
+        </div>
+
+        <div class="calibre-preview-col">
+          <div class="calibre-preview-cover-wrap">
+            <img id="calibre-preview-cover" src="" alt="Portada" />
+          </div>
+          <div class="calibre-preview-meta">
+            <h4 id="calibre-preview-title">Título</h4>
+            <div id="calibre-preview-creator" class="calibre-preview-sub">Creador</div>
+            <div id="calibre-preview-tags" class="calibre-preview-tags"></div>
+            
+            <div class="calibre-preview-synopsis" id="calibre-preview-synopsis">Sinopsis no disponible.</div>
+          </div>
+          <button type="button" id="btn-calibre-import" class="btn-primary btn-calibre-import-action">
+            <i data-lucide="check"></i> Importar esta Edición a Baúl
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 2. FICHA TÉCNICA (CON AUTO-GUARDADO CONTINUO) -->
+  <dialog id="detail-modal" class="modal modal-lg">
+    <div class="modal-box detail-box" id="detail-modal-box">
+      <div class="ambient-glow-backdrop">
+        <img id="detail-ambient-glow-img" src="" alt="Ambient Glow" />
+      </div>
+      
+      <button class="modal-close-x" id="btn-close-detail" title="Cerrar y guardar cambios (Escape)">✕</button>
+      <div class="detail-layout">
+        <div class="detail-media-col">
+          <div class="detail-cover-wrapper">
+            <img id="detail-cover" src="" alt="Portada" class="detail-cover-img" />
+          </div>
+          
+          <button type="button" id="detail-wishlist-toggle" class="btn-wishlist-toggle">
+            <i data-lucide="sparkles"></i>
+            <span id="detail-wishlist-text">En Lista de Deseos</span>
+          </button>
+
+          <div class="detail-status-pill-wrap" id="detail-status-indicator"></div>
+
+          <div class="rating-container">
+            <span class="detail-section-label">Calificación:</span>
+            <div class="star-rating" id="detail-stars">
+              <span data-star="1">★</span><span data-star="2">★</span><span data-star="3">★</span><span data-star="4">★</span><span data-star="5">★</span>
+            </div>
+          </div>
+
+          <!-- RÓTULOS DE FECHAS CORREGIDOS -->
+          <div class="dates-container">
+            <label>📅 Empezado / Registrado:</label>
+            <input type="date" id="detail-date-started" />
+            <label>🏁 Terminado:</label>
+            <input type="date" id="detail-date-finished" />
+          </div>
+
+          <button type="button" id="btn-open-streaming-hub" class="btn-streaming-hub-action" title="Abrir en Spotify, YouTube, JustWatch o Goodreads">
+            <i data-lucide="compass"></i>
+            <span id="streaming-hub-btn-label">Enlaces & Streaming</span>
+          </button>
+        </div>
+
+        <div class="detail-info-col">
+          <div class="detail-subtabs-bar">
+            <button type="button" class="detail-subtab-btn active" id="btn-dtab-general">
+              <i data-lucide="file-text"></i> General
+            </button>
+            <button type="button" class="detail-subtab-btn" id="btn-dtab-extended">
+              <i data-lucide="layers"></i> <span id="detail-extended-tab-label">Contenido y Ficha</span>
+            </button>
+          </div>
+
+          <!-- PESTAÑA 1: GENERAL -->
+          <div class="detail-tab-pane active" id="pane-detail-general">
+            <div class="detail-header-info">
+              <span id="detail-type-badge" class="type-badge-pill">Libro</span>
+              <label class="input-sublabel">Título:</label>
+              <input type="text" id="detail-edit-title" class="editable-title-input" />
+              <label class="input-sublabel">Creador (Autor / Director / Artista):</label>
+              <input type="text" id="detail-edit-creator" class="editable-creator-input" />
+            </div>
+            <div class="detail-meta-grid">
+              <div><label>📍 País de Origen:</label><input type="text" id="detail-edit-country" /></div>
+              <div><label>📅 Año:</label><input type="number" id="detail-edit-year" /></div>
+            </div>
+            <div class="tags-manager-section">
+              <label class="input-sublabel">🏷️ Etiquetas:</label>
+              <div class="detail-tags-wrap" id="detail-tags-wrap"></div>
+              <div class="add-tag-box">
+                <input type="text" id="new-tag-input" placeholder="+ Agregar etiqueta (Enter)..." />
+                <button type="button" id="btn-add-tag" class="btn-add-tag-action">Agregar</button>
+              </div>
+            </div>
+
+            <div class="citation-section">
+              <label class="input-sublabel"><i data-lucide="graduation-cap"></i> Citar en formato académico:</label>
+              <div class="citation-btn-group">
+                <button type="button" class="btn-copy-cite" data-style="apa">Copiar APA 7</button>
+                <button type="button" class="btn-copy-cite" data-style="chicago">Chicago</button>
+                <button type="button" class="btn-copy-cite" data-style="mla">MLA 9</button>
+              </div>
+            </div>
+
+            <!-- SECCIÓN: ARCHIVO LOCAL O ENLACE WEB PERSONAL -->
+            <div class="custom-link-section">
+              <label class="input-sublabel"><i data-lucide="paperclip"></i> Archivo Local (PDF / EPUB / Video) o Enlace Web:</label>
+              <div class="custom-link-input-row">
+                <input type="text" id="detail-custom-link" placeholder='https://... o "C:\Mis Libros\obra.pdf"' />
+                <label class="btn-custom-link-browse" title="Seleccionar archivo desde tu PC">
+                  <i data-lucide="folder-open"></i> Explorar
+                  <input type="file" id="detail-file-picker" style="display:none;" />
+                </label>
+                <button type="button" id="btn-open-custom-link" class="btn-custom-link-open" title="Abrir archivo o enlace web">
+                  <i data-lucide="external-link"></i> Abrir
+                </button>
+              </div>
+            </div>
+
+            <div class="detail-notes-section">
+              <label for="detail-notes">📝 <strong>Bitácora y Notas Personales</strong>:</label>
+              <textarea id="detail-notes" placeholder="Tus reflexiones, citas favoritas o crítica..."></textarea>
+            </div>
+
+            <!-- SECCIÓN: EL CRÍTICO CULTURAL -->
+            <div class="detail-critic-section">
+              <div class="critic-header">
+                <div class="critic-title-wrap">
+                  <i data-lucide="brain-circuit" class="critic-icon"></i>
+                  <div>
+                    <label class="input-sublabel" style="font-weight:600; font-size:0.85rem; color:var(--text-normal); margin:0;">El Crítico Cultural</label>
+                    <span style="font-size:0.72rem; color:var(--text-muted);">Análisis riguroso de puentes conceptuales y canon afín</span>
+                  </div>
+                </div>
+                <div class="critic-actions-bar">
+                  <button type="button" id="btn-critic-bridges" class="btn-critic-action" title="Buscar paralelismos conceptuales en tu catálogo">
+                    <i data-lucide="git-merge"></i> Puentes Temáticos
+                  </button>
+                  <button type="button" id="btn-critic-discoveries" class="btn-critic-action" title="Recomendar 3 obras afines de valor canónico">
+                    <i data-lucide="compass"></i> Nuevos Descubrimientos
+                  </button>
+                </div>
+              </div>
+              <div id="critic-result-container" class="critic-result-container"></div>
+            </div>
+          </div>
+
+          <!-- PESTAÑA 2: CONTENIDO EXTENDIDO -->
+          <div class="detail-tab-pane" id="pane-detail-extended">
+            
+            <!-- MÚSICA -->
+            <div id="extended-content-music" class="extended-section hidden">
+              <div class="extended-header">
+                <h4><i data-lucide="disc"></i> Lista de Canciones (Tracklist)</h4>
+                <span id="music-track-count" class="badge-pill">0 pistas</span>
+              </div>
+              <div class="tracklist-container" id="detail-tracklist-container">
+                <p class="empty-hint">No hay canciones registradas.</p>
+              </div>
+            </div>
+
+            <!-- CINE -->
+            <div id="extended-content-movie" class="extended-section hidden">
+              <div class="extended-header">
+                <h4><i data-lucide="film"></i> Ficha Cinematográfica & Reparto</h4>
+                <span id="movie-runtime-badge" class="badge-pill">-- min</span>
+              </div>
+              
+              <div class="book-edit-grid">
+                <div class="form-row">
+                  <label class="input-sublabel">🎬 Director:</label>
+                  <input type="text" id="movie-edit-director" placeholder="Ej: Steven Spielberg" />
+                </div>
+                <div class="form-row">
+                  <label class="input-sublabel">🏢 Estudio / Productora:</label>
+                  <input type="text" id="movie-edit-studio" placeholder="Ej: DreamWorks, Paramount..." />
+                </div>
+                <div class="form-row">
+                  <label class="input-sublabel">⏱️ Duración (minutos):</label>
+                  <input type="number" id="movie-edit-runtime" placeholder="Ej: 169" />
+                </div>
+                <div class="form-row">
+                  <label class="input-sublabel">⭐ IMDb / Puntuación:</label>
+                  <input type="text" id="movie-edit-vote" placeholder="Ej: 8.6" />
+                </div>
+              </div>
+
+              <div class="form-row" style="margin-top: 8px;">
+                <label class="input-sublabel">🎭 Reparto Principal (separados por coma):</label>
+                <input type="text" id="movie-edit-cast" placeholder="Ej: Tom Hanks, Matt Damon, Tom Sizemore..." />
+              </div>
+
+              <div class="form-row" style="margin-top: 8px;">
+                <label class="input-sublabel">📖 Sinopsis de la Película:</label>
+                <textarea id="movie-edit-synopsis" class="book-synopsis-edit-textarea" placeholder="Escribe o edita la sinopsis de la película..."></textarea>
+              </div>
+            </div>
+
+            <!-- LIBROS -->
+            <div id="extended-content-book" class="extended-section hidden">
+              <div class="extended-header">
+                <h4><i data-lucide="book-open"></i> Detalles de Edición & Publicación</h4>
+                <span id="book-pages-badge" class="badge-pill">-- págs</span>
+              </div>
+              
+              <div class="book-edit-grid">
+                <div class="form-row">
+                  <label class="input-sublabel">🏢 Editorial:</label>
+                  <input type="text" id="book-edit-publisher" placeholder="Ej: Einaudi, Alianza, Cátedra..." />
+                </div>
+
+                <div class="form-row">
+                  <label class="input-sublabel">📖 Número o Tipo de Edición:</label>
+                  <input type="text" id="book-edit-edition" placeholder="Ej: 1ª ed., Edición Crítica, Bolsillo..." />
+                </div>
+
+                <!-- CAMPO: AÑO DE ESTA EDICIÓN FÍSICA -->
+                <div class="form-row">
+                  <label class="input-sublabel">📅 Año de esta Edición:</label>
+                  <input type="number" id="book-edit-edition-year" placeholder="Ej: 2017" />
+                </div>
+
+                <div class="form-row">
+                  <label class="input-sublabel">🌐 Traductor(es):</label>
+                  <input type="text" id="book-edit-translator" placeholder="Ej: Cesare Pavese, Jorge Luis Borges..." />
+                </div>
+
+                <div class="form-row">
+                  <label class="input-sublabel">📄 Total de Páginas:</label>
+                  <input type="number" id="book-edit-pages" placeholder="Ej: 240" />
+                </div>
+
+                <div class="form-row">
+                  <label class="input-sublabel">🆔 Código ISBN-13 / 10:</label>
+                  <input type="text" id="book-edit-isbn" placeholder="978-..." />
+                </div>
+
+                <div class="form-row">
+                  <label class="input-sublabel">🗣️ Idioma de la Edición:</label>
+                  <input type="text" id="book-edit-language" placeholder="Ej: Español, Italiano, Inglés..." />
+                </div>
+              </div>
+
+              <div class="form-row" style="margin-top: 8px;">
+                <label class="input-sublabel">📖 Resumen / Sinopsis Editorial:</label>
+                <textarea id="book-edit-synopsis" class="book-synopsis-edit-textarea" placeholder="Resumen editorial o texto de contraportada de esta edición..."></textarea>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 3. MODAL EL ANUARIO / CULTURAL WRAP -->
+  <dialog id="wrap-modal" class="modal modal-xl">
+    <div class="modal-box wrap-modal-box">
+      <button class="modal-close-x" id="btn-close-wrap">✕</button>
+      
+      <div class="wrap-header">
+        <div class="wrap-title-wrap">
+          <div class="wrap-badge-icon"><i data-lucide="sparkles"></i></div>
+          <div>
+            <h3 id="wrap-hero-title">Tu Año Cultural</h3>
+            <p>Retrospectiva de obras completadas, favoritos y huella artística</p>
+          </div>
+        </div>
+        <select id="wrap-year-select" class="wrap-year-dropdown" title="Cambiar año"></select>
+      </div>
+
+      <div class="wrap-body-layout">
+        <div class="wrap-overview-grid">
+          <div class="wrap-stat-box">
+            <span class="wrap-stat-icon"><i data-lucide="layers"></i></span>
+            <div class="wrap-stat-val" id="wrap-stats-total">0</div>
+            <div class="wrap-stat-lbl">Total Completadas</div>
+          </div>
+          <div class="wrap-stat-box">
+            <span class="wrap-stat-icon"><i data-lucide="book"></i></span>
+            <div class="wrap-stat-val" id="wrap-stats-books">0</div>
+            <div class="wrap-stat-lbl">Libros Leídos</div>
+          </div>
+          <div class="wrap-stat-box">
+            <span class="wrap-stat-icon"><i data-lucide="film"></i></span>
+            <div class="wrap-stat-val" id="wrap-stats-movies">0</div>
+            <div class="wrap-stat-lbl">Películas Vistas</div>
+          </div>
+          <div class="wrap-stat-box">
+            <span class="wrap-stat-icon"><i data-lucide="disc"></i></span>
+            <div class="wrap-stat-val" id="wrap-stats-music">0</div>
+            <div class="wrap-stat-lbl">Discos Escuchados</div>
+          </div>
+        </div>
+
+        <div class="wrap-highlights-row">
+          <div class="wrap-highlight-card">
+            <div class="highlight-title"><i data-lucide="user-check"></i> Creador Más Consumido:</div>
+            <div id="wrap-top-creator" class="highlight-value">--</div>
+          </div>
+          <div class="wrap-highlight-card">
+            <div class="highlight-title"><i data-lucide="calendar-check"></i> Mes Cumbre de Actividad:</div>
+            <div id="wrap-peak-month" class="highlight-value">--</div>
+          </div>
+        </div>
+
+        <div class="wrap-narrative-section">
+          <h4><i data-lucide="file-text"></i> Crónica y Resumen Curatorial del Año</h4>
+          <p id="wrap-narrative" class="wrap-narrative-text">Cargando crónica...</p>
+        </div>
+
+        <div class="wrap-star5-section">
+          <div class="star5-header">
+            <h4><i data-lucide="star" style="color:var(--star-gold);"></i> Muro de Obras Maestras (5 Estrellas ★)</h4>
+            <span id="wrap-star5-count" class="badge-pill">0 obras</span>
+          </div>
+          <div id="wrap-star5-grid" class="wrap-star5-grid"></div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 4. MODAL INGESTA MASIVA DESDE NOTAS O IA EXTERNA -->
+  <dialog id="bulk-ingest-modal" class="modal modal-xl">
+    <div class="modal-box bulk-modal-box">
+      <button class="modal-close-x" id="btn-close-bulk">✕</button>
+      
+      <div class="bulk-header">
+        <div class="bulk-title-wrap">
+          <div class="bulk-badge-icon"><i data-lucide="file-input"></i></div>
+          <div>
+            <h3>Ingesta Masiva desde Notas o IA</h3>
+            <p>Pega listas de texto plano, notas o carga un archivo JSON estructurado.</p>
+          </div>
+        </div>
+        
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" id="btn-copy-universal-prompt" class="btn-copy-prompt-action" title="Copiar prompt para ChatGPT/Claude">
+            <i data-lucide="copy"></i> Copiar Prompt
+          </button>
+          
+          <label class="btn-copy-prompt-action" style="cursor:pointer;">
+            <i data-lucide="upload"></i> Cargar archivo JSON
+            <input type="file" id="bulk-json-file-input" accept=".json" style="display:none;" />
+          </label>
+        </div>
+      </div>
+
+      <div class="bulk-input-area">
+        <textarea id="bulk-text-input" class="bulk-textarea" placeholder="Pega aquí tu lista en texto plano o el JSON generado por la IA...
+Ejemplo de texto plano:
+- Película: Stalker (1979), Andrei Tarkovsky
+- Libro: 1984 (1949), George Orwell
+- Disco: Utakata no Hibi (1983), Mariah
+
+O bien pega un bloque JSON [ { ... } ]"></textarea>
+        
+        <div class="bulk-parse-bar">
+          <button type="button" id="btn-parse-bulk" class="btn-primary btn-parse-action">
+            <i data-lucide="sparkles"></i> Analizar y Previsualizar Lote
+          </button>
+          <span class="bulk-parse-hint"><i data-lucide="info"></i> Se generará una tabla editable antes de guardar en tu biblioteca.</span>
+        </div>
+      </div>
+
+      <div class="bulk-staging-section" id="bulk-staging-section">
+        <div class="bulk-staging-header">
+          <h4><i data-lucide="table"></i> Tabla Previa de Revisión y Edición</h4>
+          <span id="bulk-selected-count" class="badge-pill">0 obras detectadas</span>
+        </div>
+        
+        <div class="bulk-staging-table-wrap" id="bulk-staging-table-wrap">
+          <div class="bulk-empty-staging">
+            <i data-lucide="clipboard-list"></i>
+            <span>Pega tu lista arriba y pulsa «Analizar y Previsualizar Lote» para revisar y editar los datos antes de importar.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:10px;">
+        <button type="button" id="btn-cancel-bulk" class="btn-secondary">Cancelar</button>
+        <button type="button" id="btn-commit-bulk" class="btn-primary" disabled>
+          <i data-lucide="check"></i> Importar Obras Seleccionadas
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 5. MODAL CAMBIAR PORTADA -->
+  <dialog id="cover-modal" class="modal modal-md">
+    <div class="modal-box">
+      <button class="modal-close-x" id="btn-close-cover-modal">✕</button>
+      <h3><i data-lucide="image"></i> Cambiar Portada</h3>
+      <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;" id="cover-modal-subtitle">
+        Pega la URL directa de la imagen para la obra.
+      </p>
+      
+      <div style="margin: 14px 0;">
+        <input type="url" id="cover-modal-input" placeholder="https://ejemplo.com/portada.jpg" style="width:100%;" />
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="btn-cancel-cover" class="btn-secondary">Cancelar</button>
+        <button type="button" id="btn-save-cover" class="btn-primary"><i data-lucide="check"></i> Actualizar Portada</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 6. MODAL DÍA CALENDARIO -->
+  <dialog id="calendar-day-modal" class="modal modal-md">
+    <div class="modal-box">
+      <button class="modal-close-x" id="btn-close-day-modal">✕</button>
+      <h3 id="day-modal-title">Obras del día</h3>
+      <p id="day-modal-subtitle" style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;"></p>
+      <div class="day-modal-items" id="day-modal-items"></div>
+    </div>
+  </dialog>
+
+  <!-- 7. MODAL AGREGAR MANUAL -->
+  <dialog id="manual-modal" class="modal modal-md">
+    <div class="modal-box">
+      <button class="modal-close-x" id="btn-close-manual">✕</button>
+      <h3><i data-lucide="plus-circle"></i> Agregar Obra Manualmente</h3>
+      <form id="manual-add-form" class="manual-form">
+        <div class="form-row">
+          <label>Tipo:</label>
+          <select id="manual-type">
+            <option value="book">Libro</option>
+            <option value="movie">Película</option>
+            <option value="music">Música</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Título:</label><input type="text" id="manual-title" required /></div>
+        <div class="form-row"><label>Creador:</label><input type="text" id="manual-creator" required /></div>
+        <div class="form-grid-2">
+          <div><label>País:</label><input type="text" id="manual-country" /></div>
+          <div><label>Año:</label><input type="number" id="manual-year" /></div>
+        </div>
+        <div class="form-row"><label>Estado:</label>
+          <select id="manual-status">
+            <option value="todo">Por empezar</option>
+            <option value="in_progress">En progreso</option>
+            <option value="completed">Terminado</option>
+          </select>
+        </div>
+        <div class="form-row checkbox-row">
+          <label><input type="checkbox" id="manual-is-wishlist" /> <i data-lucide="sparkles"></i> Agregar a Lista de Deseos</label>
+        </div>
+        <div class="form-row"><label>Etiquetas:</label><input type="text" id="manual-tags" placeholder="Separadas por coma" /></div>
+        <div class="form-row"><label>URL Portada:</label><input type="url" id="manual-cover" /></div>
+        <div class="modal-actions">
+          <button type="button" id="btn-cancel-manual" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- 8. MODAL CENTRO DE CONFIGURACIÓN UNIFICADO -->
+  <dialog id="general-settings-modal" class="modal modal-xl">
+    <div class="modal-box unified-settings-box">
+      <button class="modal-close-x" id="btn-close-general-settings">✕</button>
+      
+      <div class="unified-settings-header">
+        <div class="unified-settings-title-wrap">
+          <div class="unified-settings-icon"><i data-lucide="sliders"></i></div>
+          <div>
+            <h3>Centro de Configuración</h3>
+            <p>Gestiona tu espacio, conexiones con APIs, ambientes y respaldos de tu biblioteca</p>
+          </div>
+        </div>
+
+        <div class="unified-settings-tabs-bar">
+          <button type="button" class="settings-subtab-btn active" id="btn-settab-general">
+            <i data-lucide="user"></i> General
+          </button>
+          <button type="button" class="settings-subtab-btn" id="btn-settab-ambient">
+            <i data-lucide="sparkles"></i> Fondo & Ambiente
+          </button>
+          <button type="button" class="settings-subtab-btn" id="btn-settab-api">
+            <i data-lucide="key"></i> APIs & Conexiones
+          </button>
+          <button type="button" class="settings-subtab-btn" id="btn-settab-backup">
+            <i data-lucide="arrow-left-right"></i> Migración & Respaldo
+          </button>
+        </div>
+      </div>
+
+      <div class="unified-settings-content">
+        
+        <!-- SUBPESTAÑA 1: GENERAL -->
+        <div class="settings-tab-pane active" id="pane-settings-general">
+          <div class="settings-section-card">
+            <h4><i data-lucide="home"></i> Bautizo de tu Centro Cultural</h4>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
+              Personaliza el nombre con el que se identifica tu espacio cultural en la barra lateral y en los anuarios.
+            </p>
+            <div class="form-row">
+              <label for="general-vault-input">Nombre de tu Espacio:</label>
+              <input type="text" id="general-vault-input" placeholder="Ej: Mi mundo, Ágora de Alejandría..." required />
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+              <button type="button" id="btn-save-general-settings" class="btn-primary">
+                <i data-lucide="check"></i> Actualizar Nombre
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBPESTAÑA 2: FONDO & AMBIENTE -->
+        <div class="settings-tab-pane" id="pane-settings-ambient">
+          
+          <div class="settings-section-card">
+            <div class="ambient-toggle-row">
+              <div>
+                <h4><i data-lucide="calendar-heart"></i> Detección Automática por Estación</h4>
+                <p style="font-size:0.76rem; color:var(--text-muted); margin-top:3px;">
+                  Adapta el fondo automáticamente según el mes actual (Invierno, Primavera, Verano u Otoño).
+                </p>
+              </div>
+              <label class="switch-toggle" title="Alternar modo automático">
+                <input type="checkbox" id="toggle-bg-auto" checked />
+                <span class="slider-round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-section-card">
+            <h4><i data-lucide="palette"></i> Galería de Ambientes Cinemáticos</h4>
+            <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:12px;">
+              Selecciona una atmósfera visual en bucle para decorar tu biblioteca.
+            </p>
+
+            <div class="ambient-presets-grid" id="ambient-presets-grid">
+              <div class="ambient-card" data-preset="winter">
+                <div class="ambient-card-icon"><i data-lucide="snowflake"></i></div>
+                <div class="ambient-card-info">
+                  <span class="ambient-card-name">Invierno</span>
+                  <span class="ambient-card-desc">Nieve & frío</span>
+                </div>
+                <span class="ambient-active-badge"><i data-lucide="check"></i></span>
+              </div>
+
+              <div class="ambient-card" data-preset="spring">
+                <div class="ambient-card-icon"><i data-lucide="flower-2"></i></div>
+                <div class="ambient-card-info">
+                  <span class="ambient-card-name">Primavera</span>
+                  <span class="ambient-card-desc">Flores & brisa</span>
+                </div>
+                <span class="ambient-active-badge"><i data-lucide="check"></i></span>
+              </div>
+
+              <div class="ambient-card" data-preset="summer">
+                <div class="ambient-card-icon"><i data-lucide="sun-medium"></i></div>
+                <div class="ambient-card-info">
+                  <span class="ambient-card-name">Verano</span>
+                  <span class="ambient-card-desc">Sol & calidez</span>
+                </div>
+                <span class="ambient-active-badge"><i data-lucide="check"></i></span>
+              </div>
+
+              <div class="ambient-card" data-preset="autumn">
+                <div class="ambient-card-icon"><i data-lucide="trees"></i></div>
+                <div class="ambient-card-info">
+                  <span class="ambient-card-name">Otoño</span>
+                  <span class="ambient-card-desc">Hojas & serenidad</span>
+                </div>
+                <span class="ambient-active-badge"><i data-lucide="check"></i></span>
+              </div>
+
+              <div class="ambient-card" data-preset="rain">
+                <div class="ambient-card-icon"><i data-lucide="cloud-rain"></i></div>
+                <div class="ambient-card-info">
+                  <span class="ambient-card-name">Lluvia</span>
+                  <span class="ambient-card-desc">Gotas & calma</span>
+                </div>
+                <span class="ambient-active-badge"><i data-lucide="check"></i></span>
+              </div>
+
+              <div class="ambient-card" data-preset="night">
+                <div class="ambient-card-icon"><i data-lucide="moon-star"></i></div>
+                <div class="ambient-card-info">
+                  <span class="ambient-card-name">Noche</span>
+                  <span class="ambient-card-desc">Cielo estrellado</span>
+                </div>
+                <span class="ambient-active-badge"><i data-lucide="check"></i></span>
+              </div>
+
+              <div class="ambient-card" data-preset="none">
+                <div class="ambient-card-icon"><i data-lucide="ban"></i></div>
+                <div class="ambient-card-info">
+                  <span class="ambient-card-name">Desactivado</span>
+                  <span class="ambient-card-desc">Obsidian puro</span>
+                </div>
+                <span class="ambient-active-badge"><i data-lucide="check"></i></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section-card">
+            <h4><i data-lucide="image"></i> Imagen de Fondo Personalizada (.jpg / .png / .webp)</h4>
+            <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:12px;">
+              Guarda tu propio fondo de pantalla. Se almacena localmente de forma segura en tu base de datos interna con 0% de consumo de GPU.
+            </p>
+
+            <div class="custom-bg-uploader-wrap">
+              <label class="btn-upload-video-label">
+                <i data-lucide="upload-cloud"></i> Seleccionar Imagen (.jpg / .png / .webp)
+                <input type="file" id="input-custom-bg-file" accept="image/jpeg, image/png, image/webp, image/avif" style="display:none;" />
+              </label>
+
+              <button type="button" id="btn-use-custom-bg" class="btn-secondary" style="display:none;">
+                <i data-lucide="image"></i> Usar esta Imagen
+              </button>
+
+              <button type="button" id="btn-delete-custom-bg" class="btn-danger-subtle" style="display:none;" title="Eliminar imagen guardada">
+                <i data-lucide="trash-2"></i> Eliminar Imagen
+              </button>
+
+              <span id="custom-bg-status-text" class="custom-bg-status">Sin imagen personalizada guardada.</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SUBPESTAÑA 3: APIS Y CONEXIONES -->
+        <div class="settings-tab-pane" id="pane-settings-api">
+          <div class="settings-section-card">
+            <h4><i data-lucide="key"></i> Claves de Conexión Local</h4>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px;">
+              Tus claves se guardan <strong>únicamente en tu disco local</strong> y nunca salen de tu ordenador.
+            </p>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div class="form-row">
+                <label for="gemini-key-input">Google Gemini API Key (Asistente y El Crítico Cultural):</label>
+                <input type="password" id="gemini-key-input" placeholder="AIzaSy..." />
+              </div>
+
+              <div class="form-row">
+                <label for="omdb-key-input">OMDb API Key (Cine y Películas - IMDb):</label>
+                <input type="password" id="omdb-key-input" placeholder="Tu clave de omdbapi.com" />
+              </div>
+
+              <div class="form-row">
+                <label for="discogs-token-input">Discogs Personal Access Token (Música y Vinilos):</label>
+                <input type="password" id="discogs-token-input" placeholder="Token personal de discogs.com" />
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+              <button type="button" id="btn-save-settings" class="btn-primary">
+                <i data-lucide="check"></i> Guardar Claves
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBPESTAÑA 4: MIGRACIÓN Y RESPALDO -->
+        <div class="settings-tab-pane" id="pane-settings-backup">
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
+            Exporta tu colección en diferentes formatos, respalda tu base de datos o migra tu bóveda completa con portadas.
+          </p>
+
+          <div class="backup-grid">
+            
+            <!-- CASILLERO 1: BÓVEDA COMPLETA AUTÓNOMA (.ATENEA) -->
+            <div class="backup-card backup-vault-card" style="grid-column: 1 / -1; border-color: var(--accent); background: rgba(124, 58, 237, 0.08);">
+              <div class="backup-card-header">
+                <i data-lucide="package-check" style="color:var(--accent);"></i>
+                <h4>Bóveda Completa Atenea (.atenea)</h4>
+              </div>
+              <p>Respaldo total: empaqueta toda tu biblioteca, colecciones, notas y <strong>el 100% de las portadas guardadas en disco</strong> en un único archivo comprimido para migrar a cualquier PC sin perder nada.</p>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
+                <button id="btn-export-vault" class="btn-export-action" style="flex:1; background:var(--accent); color:#fff; border-color:var(--accent); font-weight:700;">
+                  <i data-lucide="download"></i> Exportar Bóveda Completa
+                </button>
+                <label class="btn-import-label" style="flex:1;">
+                  <i data-lucide="upload"></i> Restaurar Bóveda (.atenea / .zip)
+                  <input type="file" id="input-import-vault" accept=".atenea,.zip" style="display:none;" />
+                </label>
+              </div>
+            </div>
+
+            <!-- CASILLERO 2: OBSIDIAN -->
+            <div class="backup-card">
+              <div class="backup-card-header">
+                <i data-lucide="file-text" style="color:var(--accent);"></i>
+                <h4>Notas para Obsidian (.md)</h4>
+              </div>
+              <p>Descarga un archivo <strong>.ZIP</strong> con notas Markdown formateadas con Frontmatter YAML y portadas.</p>
+              <button id="btn-export-obsidian" class="btn-export-action"><i data-lucide="download"></i> Exportar para Obsidian</button>
+            </div>
+
+            <!-- CASILLERO 3: BIBTEX -->
+            <div class="backup-card">
+              <div class="backup-card-header">
+                <i data-lucide="graduation-cap" style="color:#f59e0b;"></i>
+                <h4>Zotero / BibTeX (.bib)</h4>
+              </div>
+              <p>Exporta o importa referencias académicas directamente con tu biblioteca de Zotero.</p>
+              <div style="display:flex; gap:6px;">
+                <button id="btn-export-bibtex" class="btn-export-action" style="flex:1;"><i data-lucide="download"></i> Exportar BibTeX</button>
+                <label class="btn-import-label" style="flex:1;">
+                  <i data-lucide="upload"></i> Importar BibTeX
+                  <input type="file" id="input-import-bibtex" accept=".bib" style="display:none;" />
+                </label>
+              </div>
+            </div>
+
+            <!-- CASILLERO 4: EXCEL / CSV -->
+            <div class="backup-card">
+              <div class="backup-card-header">
+                <i data-lucide="table" style="color:#22c55e;"></i>
+                <h4>Excel / CSV</h4>
+              </div>
+              <p>Exporta o importa toda tu tabla compatible con Excel, Google Sheets o Notion.</p>
+              <div style="display:flex; gap:6px;">
+                <button id="btn-export-csv" class="btn-export-action" style="flex:1;"><i data-lucide="download"></i> Exportar CSV</button>
+                <label class="btn-import-label" style="flex:1;">
+                  <i data-lucide="upload"></i> Importar CSV
+                  <input type="file" id="input-import-csv" accept=".csv" style="display:none;" />
+                </label>
+              </div>
+            </div>
+
+            <!-- CASILLERO 5: COPIA JSON LIGERA -->
+            <div class="backup-card">
+              <div class="backup-card-header">
+                <i data-lucide="database" style="color:#3b82f6;"></i>
+                <h4>Copia de Seguridad (.json)</h4>
+              </div>
+              <p>Respaldo ligero del 100% de los datos en texto para restaurar en cualquier momento.</p>
+              <div style="display:flex; gap:6px;">
+                <button id="btn-export-json" class="btn-export-action" style="flex:1;"><i data-lucide="download"></i> Guardar JSON</button>
+                <label class="btn-import-label" style="flex:1;">
+                  <i data-lucide="upload"></i> Importar JSON
+                  <input type="file" id="input-import-json" accept=".json" style="display:none;" />
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 9. MODAL ELIMINACIÓN -->
+  <dialog id="delete-modal" class="modal">
+    <div class="modal-box delete-box">
+      <h3 style="color: var(--status-todo);"><i data-lucide="trash-2"></i> Eliminar de la biblioteca</h3>
+      <p id="delete-modal-text">¿Deseas eliminar este elemento?</p>
+      <div class="modal-actions">
+        <button id="btn-cancel-delete" class="btn-secondary">Cancelar</button>
+        <button id="btn-confirm-delete" class="btn-danger">Eliminar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 10. MODAL HUB MULTIMEDIA & ENLACES INTELIGENTES -->
+  <dialog id="streaming-hub-modal" class="modal modal-md">
+    <div class="modal-box streaming-hub-box">
+      <button class="modal-close-x" id="btn-close-streaming-hub">✕</button>
+      <div class="streaming-hub-header">
+        <div class="streaming-hub-icon"><i data-lucide="compass"></i></div>
+        <div>
+          <h3 id="streaming-hub-title">Enlaces & Streaming</h3>
+          <p id="streaming-hub-subtitle" style="font-size:0.75rem; color:var(--text-muted);">Acceso directo en tu navegador</p>
+        </div>
+      </div>
+      <div class="streaming-links-grid" id="streaming-links-grid"></div>
+    </div>
+  </dialog>
+
+  <!-- 11. MODAL CREAR COLECCIÓN PERSONALIZADA -->
+  <dialog id="create-collection-modal" class="modal modal-md">
+    <div class="modal-box" style="width: 400px;">
+      <button class="modal-close-x" id="btn-close-create-collection">✕</button>
+      <h3 style="display:flex; align-items:center; gap:8px;"><i data-lucide="folder-plus"></i> Nueva Colección</h3>
+      <p style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">
+        Crea una estantería o lista temática (ej. <em>Cine Noir, Joyas Ocultas, Lecturas 2026</em>).
+      </p>
+      <div style="margin: 16px 0 10px 0;" class="form-row">
+        <label for="input-new-collection-name">Nombre de la Colección:</label>
+        <input type="text" id="input-new-collection-name" placeholder="Ej: Maratón de Terror, Sci-Fi..." required maxlength="40" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="btn-cancel-create-collection" class="btn-secondary">Cancelar</button>
+        <button type="button" id="btn-confirm-create-collection" class="btn-primary">
+          <i data-lucide="plus"></i> Crear Colección
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

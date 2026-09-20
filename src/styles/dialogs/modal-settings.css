@@ -1,0 +1,400 @@
+/* ============================================================================
+   SRC/STYLES/DIALOGS/MODAL-SETTINGS.CSS - Centro de Configuración y Ambientes
+   - Pestañas de configuración: General, Ambiente, Conexiones API y Respaldo
+   - Switch de clima dinámico y tarjetas de presets visuales
+   - Secciones de exportación/importación (Obsidian, Zotero, CSV y Bóveda Completa)
+   ============================================================================ */
+
+#general-settings-modal.modal-xl {
+  width: min(960px, 95vw);
+}
+
+.unified-settings-box {
+  width: min(960px, 95vw) !important;
+  max-width: 960px !important;
+  max-height: 88vh !important;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 28px;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.70);
+  border-radius: var(--radius);
+  contain: paint layout;
+  isolation: isolate;
+  overscroll-behavior-y: contain;
+}
+
+.unified-settings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 14px;
+}
+
+.unified-settings-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.unified-settings-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.unified-settings-icon .lucide { 
+  width: 22px; 
+  height: 22px; 
+}
+
+.unified-settings-title-wrap h3 { 
+  font-size: 1.15rem; 
+  font-weight: 700; 
+  color: var(--text-main); 
+}
+
+.unified-settings-title-wrap p { 
+  font-size: 0.76rem; 
+  color: var(--text-muted); 
+}
+
+.unified-settings-tabs-bar {
+  display: flex;
+  gap: 8px;
+  background: var(--bg-main);
+  padding: 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+}
+
+.settings-subtab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.settings-subtab-btn.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.unified-settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-tab-pane {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-tab-pane.active {
+  display: flex;
+}
+
+.settings-section-card {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  contain: paint layout;
+}
+
+.settings-section-card h4 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ambient-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.switch-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switch-toggle input { 
+  opacity: 0; 
+  width: 0; 
+  height: 0; 
+}
+
+.slider-round {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  border-radius: 24px;
+}
+
+.slider-round:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text-muted);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+  border-radius: 50%;
+}
+
+.switch-toggle input:checked + .slider-round {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.switch-toggle input:checked + .slider-round:before {
+  transform: translateX(20px);
+  background-color: #ffffff;
+}
+
+.ambient-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.ambient-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  contain: paint layout;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.ambient-card:hover {
+  transform: translateY(-2px);
+  background-color: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.ambient-card.active {
+  border-color: var(--accent);
+  background: rgba(124, 58, 237, 0.18);
+}
+
+.ambient-card-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.ambient-card-icon .lucide { 
+  width: 18px; 
+  height: 18px; 
+}
+
+.ambient-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.ambient-card-name { 
+  font-size: 0.82rem; 
+  font-weight: 700; 
+  color: var(--text-main); 
+}
+
+.ambient-card-desc { 
+  font-size: 0.70rem; 
+  color: var(--text-muted); 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+
+.ambient-active-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+}
+
+.ambient-active-badge .lucide { 
+  width: 10px; 
+  height: 10px; 
+}
+
+.ambient-card.active .ambient-active-badge { 
+  display: flex; 
+}
+
+.custom-bg-uploader-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-upload-video-label {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-upload-video-label:hover { 
+  background: var(--accent); 
+  color: #fff; 
+  border-color: var(--accent); 
+}
+
+.custom-bg-status {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.btn-danger-subtle {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--status-todo);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-danger-subtle:hover {
+  background: var(--status-todo);
+  color: #ffffff;
+}
+
+/* ----------------------------------------------------------------------------
+   MIGRACIÓN Y RESPALDO
+   ---------------------------------------------------------------------------- */
+.backup-grid { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 14px; 
+  margin-top: 6px; 
+}
+
+.backup-card { 
+  background: var(--bg-card); 
+  border: 1px solid var(--border-color); 
+  padding: 14px 16px; 
+  border-radius: var(--radius); 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; 
+  contain: paint layout;
+}
+
+.backup-card-header { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+}
+
+.backup-card-header h4 { 
+  font-size: 0.88rem; 
+  font-weight: 700; 
+  color: var(--text-main); 
+}
+
+.backup-card p { 
+  font-size: 0.75rem; 
+  color: var(--text-muted); 
+  line-height: 1.35; 
+}
+
+.btn-export-action, .btn-import-label {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 7px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-export-action:hover, .btn-import-label:hover { 
+  background: var(--accent); 
+  color: #fff; 
+  border-color: var(--accent); 
+}

@@ -1,0 +1,51 @@
+# ============================================================================
+# GITIGNORE - Atenea Biblioteca (Node.js + Tauri v2 / Rust)
+# ============================================================================
+
+# 1. Dependencias y compilación de Node.js
+node_modules/
+dist/
+dist-ssr/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.local
+
+# 2. Compilación pesada de Rust y Tauri
+src-tauri/target/
+target/
+Cargo.lock
+
+# 3. SEGURIDAD: Variables de entorno y credenciales privadas
+.env
+.env.*
+!.env.example
+*.env
+
+# 4. SEGURIDAD: Claves criptográficas, certificados y firmas de release
+*.key
+*.pem
+*.cert
+*.crt
+*.pfx
+*.keystore
+
+# 5. Bases de datos locales y cachés temporales
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# 6. Carpetas de editores y sistemas operativos
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,8 @@
+/* ============================================================================
+   SRC/STYLES.CSS - Punto de Entrada y Barril Modular de Estilos de Atenea
+   ============================================================================ */
+
+@import './styles/theme.css';
+@import './styles/layout.css';
+@import './styles/views.css';
+@import './styles/modals.css';

@@ -1,0 +1,11 @@
+/* ============================================================================
+   SRC/STYLES/MODALS.CSS - Barril Maestro Modular de Diálogos de Atenea
+   ============================================================================ */
+
+@import './dialogs/modal-base.css';
+@import './dialogs/modal-detail.css';
+@import './dialogs/modal-calibre.css';
+@import './dialogs/modal-wrap.css';
+@import './dialogs/modal-bulk.css';
+@import './dialogs/modal-settings.css';
+@import './dialogs/modal-secondary.css';

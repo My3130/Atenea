@@ -1,0 +1,220 @@
+/* ============================================================================
+   SRC/STYLES/DIALOGS/MODAL-BASE.CSS - Base de Diálogos, Backdrops y Notificaciones
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   1. VARIABLES DE SUPERFICIE MODAL (DARK / LIGHT)
+   ---------------------------------------------------------------------------- */
+:root, [data-theme="dark"] {
+  --bg-modal: rgba(22, 22, 28, 0.98);
+  --bg-modal-backdrop: rgba(0, 0, 0, 0.74);
+  --star-empty-color: rgba(255, 255, 255, 0.16);
+  --star-empty-stroke: rgba(255, 255, 255, 0.42);
+}
+
+[data-theme="light"] {
+  --bg-modal: rgba(252, 252, 254, 0.98);
+  --bg-modal-backdrop: rgba(15, 23, 42, 0.45);
+  --star-empty-color: rgba(0, 0, 0, 0.08);
+  --star-empty-stroke: rgba(0, 0, 0, 0.35);
+}
+
+/* ----------------------------------------------------------------------------
+   2. CONTENEDOR <DIALOG> Y BACKDROP (GPU ZERO-BLUR)
+   ---------------------------------------------------------------------------- */
+dialog.modal { 
+  margin: auto; 
+  border: none; 
+  background: transparent; 
+  padding: 0;
+  max-width: 100vw;
+  max-height: 100vh;
+  overflow: visible;
+  outline: none;
+}
+
+dialog.modal::backdrop { 
+  background: var(--bg-modal-backdrop); 
+}
+
+.modal-box { 
+  background: var(--bg-modal); 
+  border: 1px solid var(--border-color); 
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
+  padding: 24px; 
+  border-radius: var(--radius); 
+  color: var(--text-main); 
+  width: min(460px, 92vw); 
+  position: relative;
+  contain: paint layout;
+  isolation: isolate;
+}
+
+.modal-md .modal-box { 
+  width: min(540px, 94vw); 
+}
+
+.modal-lg .modal-box { 
+  width: min(880px, 95vw); 
+  max-height: 90vh; 
+  overflow-y: auto; 
+}
+
+.modal-close-x { 
+  position: absolute; 
+  top: 14px; 
+  right: 14px; 
+  background: transparent; 
+  border: none; 
+  color: var(--text-muted); 
+  font-size: 1.15rem; 
+  cursor: pointer; 
+  transition: color 0.15s ease, transform 0.15s ease;
+  z-index: 10;
+  line-height: 1;
+}
+
+.modal-close-x:hover { 
+  color: var(--text-main); 
+  transform: scale(1.1);
+}
+
+/* ----------------------------------------------------------------------------
+   3. BOTONES DE ACCIÓN Y BADGES UNIVERSALES
+   ---------------------------------------------------------------------------- */
+.modal-actions { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 10px; 
+  margin-top: 12px; 
+}
+
+.btn-primary { 
+  background: var(--accent); 
+  color: #fff; 
+  border: none; 
+  padding: 8px 16px; 
+  border-radius: var(--radius); 
+  cursor: pointer; 
+  font-size: 0.82rem; 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  font-weight: 600; 
+  transition: background-color 0.15s ease;
+}
+
+.btn-primary:hover:not(:disabled) { 
+  background: var(--accent-hover); 
+}
+
+.btn-primary:disabled { 
+  opacity: 0.45; 
+  cursor: not-allowed; 
+}
+
+.btn-secondary { 
+  background: transparent; 
+  border: 1px solid var(--border-color); 
+  color: var(--text-muted); 
+  padding: 8px 16px; 
+  border-radius: var(--radius); 
+  cursor: pointer; 
+  font-size: 0.82rem; 
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-secondary:hover { 
+  background: var(--bg-card); 
+  color: var(--text-main); 
+}
+
+.btn-danger { 
+  background: var(--status-todo); 
+  color: #fff; 
+  border: none; 
+  padding: 8px 16px; 
+  border-radius: var(--radius); 
+  cursor: pointer; 
+  font-size: 0.82rem; 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  font-weight: 600; 
+  transition: background-color 0.15s ease;
+}
+
+.badge-pill {
+  font-size: 0.72rem;
+  background: rgba(124, 58, 237, 0.18);
+  color: #c4b5fd;
+  border: 1px solid var(--accent);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .badge-pill {
+  background: rgba(124, 58, 237, 0.12);
+  color: #6d28d9;
+  border-color: rgba(124, 58, 237, 0.45);
+}
+
+/* ----------------------------------------------------------------------------
+   4. NOTIFICACIONES TOAST (DARK & LIGHT)
+   ---------------------------------------------------------------------------- */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+.toast-pill {
+  background: var(--bg-modal);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--accent);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  font-weight: 500;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+  contain: paint layout;
+  animation: toastSlideIn 0.20s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.toast-pill.toast-success { border-left-color: var(--status-done) !important; }
+.toast-pill.toast-error { border-left-color: var(--status-todo) !important; }
+.toast-pill.toast-info { border-left-color: var(--accent) !important; }
+
+.toast-pill i, .toast-pill .lucide { 
+  width: 16px; 
+  height: 16px; 
+  flex-shrink: 0; 
+}
+
+.toast-pill.toast-success i, .toast-pill.toast-success .lucide { color: var(--status-done); }
+.toast-pill.toast-error i, .toast-pill.toast-error .lucide { color: var(--status-todo); }
+.toast-pill.toast-info i, .toast-pill.toast-info .lucide { color: var(--accent); }
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

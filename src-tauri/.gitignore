@@ -1,0 +1,38 @@
+# ============================================================================
+# .GITIGNORE - Atenea (Tauri v2 + Vanilla JS Desktop App)
+# ============================================================================
+
+# 1. Dependencias de Node / NPM
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 2. Compilación de Rust y Tauri (Pesan más de 1 GB)
+target/
+src-tauri/target/
+src-tauri/gen/schemas/
+gen/schemas/
+*.pdb
+*.lib
+*.dll
+*.exe
+
+# 3. Variables de entorno y secretos locales
+.env
+.env.local
+.env.*.local
+*.pem
+
+# 4. Archivos temporales de sistema (Windows / macOS)
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
+*.log
+
+# 5. Historial y caché de editores
+.vscode/.history/
+.vscode/.ropeproject
+*.swp

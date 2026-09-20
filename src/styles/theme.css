@@ -1,0 +1,222 @@
+/* ============================================================================
+   SRC/STYLES/THEME.CSS - Variables, Capa Ambiental, Resets y Scrollbars
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   1. PALETA DE COLORES Y VARIABLES DE TEMA (DARK / LIGHT)
+   ---------------------------------------------------------------------------- */
+:root, [data-theme="dark"] {
+  --bg-solid: #141416;
+  --bg-main: rgba(20, 20, 22, 0.45);
+  --bg-sidebar: rgba(20, 20, 24, 0.65);
+  --bg-card: rgba(26, 26, 32, 0.60);
+  --bg-card-hover: rgba(38, 38, 48, 0.80);
+  --border-color: rgba(255, 255, 255, 0.10);
+  --border-focus: rgba(255, 255, 255, 0.22);
+  --text-main: #ebebeb;
+  --text-muted: #a0a0ab;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --radius: 8px;
+
+  --status-todo: #ef4444;
+  --status-progress: #eab308;
+  --status-done: #22c55e;
+  --star-gold: #f59e0b;
+  --wishlist-gold: #f59e0b;
+
+  --pin-book: #3b82f6;
+  --pin-movie: #ef4444;
+  --pin-music: #a855f7;
+  --pin-mixed: #f59e0b;
+
+  --bg-overlay-tint: rgba(14, 14, 16, 0.55);
+}
+
+[data-theme="light"] {
+  --bg-solid: #f4f4f6;
+  --bg-main: rgba(244, 244, 246, 0.40);
+  --bg-sidebar: rgba(235, 235, 237, 0.55);
+  --bg-card: rgba(255, 255, 255, 0.60);
+  --bg-card-hover: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(0, 0, 0, 0.10);
+  --border-focus: rgba(0, 0, 0, 0.20);
+  --text-main: #18181b;
+  --text-muted: #52525b;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --wishlist-gold: #b45309;
+
+  --bg-overlay-tint: rgba(244, 244, 246, 0.30);
+}
+
+/* ----------------------------------------------------------------------------
+   2. RESET GENERAL Y CONTENCIÓN DEL BODY
+   ---------------------------------------------------------------------------- */
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+}
+
+body { 
+  background-color: var(--bg-solid); 
+  color: var(--text-main); 
+  height: 100vh; 
+  width: 100vw; 
+  overflow: hidden; 
+  user-select: none; 
+  position: relative; 
+  contain: layout size style;
+}
+
+/* ----------------------------------------------------------------------------
+   3. CAPA DE VIDEO / IMAGEN AMBIENTAL Y DIFUSOR ÓPTICO (DIRECTCOMPOSITION)
+   ---------------------------------------------------------------------------- */
+.bg-video-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: var(--bg-solid);
+  opacity: 1;
+  contain: strict;
+  isolation: isolate;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bg-video-container.bg-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background-color: transparent;
+  pointer-events: none;
+}
+
+#bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  pointer-events: none;
+}
+
+[data-theme="light"] #bg-video {
+  opacity: 0.85;
+}
+
+.bg-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-overlay-tint);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ----------------------------------------------------------------------------
+   4. ICONOS Y SCROLLBARS PERSONALIZADOS
+   ---------------------------------------------------------------------------- */
+.lucide { 
+  width: 15px; 
+  height: 15px; 
+  stroke-width: 2; 
+  display: inline-block; 
+  vertical-align: middle; 
+}
+
+.logo-icon { 
+  width: 18px; 
+  height: 18px; 
+  color: var(--accent); 
+}
+
+.app-custom-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 4px;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+::-webkit-scrollbar { 
+  width: 7px; 
+  height: 7px; 
+}
+
+::-webkit-scrollbar-track { 
+  background: rgba(0, 0, 0, 0.08); 
+  border-radius: 4px; 
+}
+
+::-webkit-scrollbar-thumb { 
+  background: rgba(255, 255, 255, 0.22); 
+  border-radius: 4px; 
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb { 
+  background: rgba(0, 0, 0, 0.28); 
+}
+
+::-webkit-scrollbar-thumb:hover { 
+  background: var(--accent); 
+}
+
+* { 
+  scrollbar-width: thin; 
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent; 
+}
+
+[data-theme="light"] * { 
+  scrollbar-color: rgba(0, 0, 0, 0.28) transparent; 
+}
+
+/* ----------------------------------------------------------------------------
+   5. UTILIDADES GLOBALES Y DRAG & DROP PARA WEBVIEW2
+   ---------------------------------------------------------------------------- */
+.hidden { 
+  display: none !important; 
+}
+
+.media-card, 
+.media-list-row {
+  -webkit-user-drag: element !important;
+}
+
+.card-cover, 
+.list-thumb,
+.cover-wrapper {
+  -webkit-user-drag: none !important;
+  pointer-events: auto;
+}
+
+.custom-collection-row * {
+  pointer-events: none;
+}
+
+.custom-collection-row .btn-delete-collection {
+  pointer-events: auto;
+}

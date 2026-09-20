@@ -1,0 +1,298 @@
+/* ============================================================================
+   SRC/STYLES/DIALOGS/MODAL-WRAP.CSS - El Anuario Cultural (Wrap Anual)
+   - Resumen retrospectivo de obras completadas por año
+   - Muro de 5 Estrellas (Obras Maestras) y crónica curatorial
+   ============================================================================ */
+
+#wrap-modal.modal-xl {
+  width: min(1050px, 95vw);
+}
+
+.wrap-modal-box {
+  width: min(1050px, 95vw) !important;
+  max-width: 95vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px 28px;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.70);
+  border-radius: var(--radius);
+  contain: paint layout;
+  isolation: isolate;
+  overscroll-behavior-y: contain;
+}
+
+.wrap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.wrap-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wrap-badge-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid var(--wishlist-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wishlist-gold);
+}
+
+.wrap-badge-icon .lucide { 
+  width: 22px; 
+  height: 22px; 
+}
+
+.wrap-title-wrap h3 { 
+  font-size: 1.25rem; 
+  font-weight: 800; 
+  color: var(--text-main); 
+}
+
+.wrap-title-wrap p { 
+  font-size: 0.78rem; 
+  color: var(--text-muted); 
+}
+
+.wrap-year-dropdown {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--wishlist-gold);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+}
+
+.wrap-body-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wrap-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.wrap-stat-box {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  contain: paint layout;
+}
+
+.wrap-stat-icon { 
+  color: var(--wishlist-gold); 
+  margin-bottom: 2px; 
+}
+
+.wrap-stat-icon .lucide { 
+  width: 18px; 
+  height: 18px; 
+}
+
+.wrap-stat-val { 
+  font-size: 1.6rem; 
+  font-weight: 800; 
+  color: var(--text-main); 
+  line-height: 1.1; 
+}
+
+.wrap-stat-lbl { 
+  font-size: 0.72rem; 
+  color: var(--text-muted); 
+  font-weight: 600; 
+  text-transform: uppercase; 
+}
+
+.wrap-highlights-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.wrap-highlight-card {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--wishlist-gold);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  contain: paint layout;
+}
+
+.highlight-title { 
+  font-size: 0.74rem; 
+  color: var(--text-muted); 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  font-weight: 600; 
+}
+
+.highlight-value { 
+  font-size: 0.95rem; 
+  font-weight: 700; 
+  color: var(--text-main); 
+}
+
+.wrap-narrative-section {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  contain: paint layout;
+}
+
+.wrap-narrative-section h4 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wrap-narrative-text {
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--text-main);
+  text-align: justify;
+}
+
+.wrap-star5-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.star5-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+}
+
+.star5-header h4 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wrap-star5-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+  contain: layout;
+  overscroll-behavior-y: contain;
+}
+
+.wrap-5star-card {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  contain: paint layout;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.wrap-5star-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--star-gold);
+}
+
+.wrap-5star-thumb {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: #111;
+  display: block;
+}
+
+.wrap-5star-info {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wrap-5star-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wrap-5star-creator {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wrap-5star-badge {
+  color: var(--star-gold);
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
+.wrap-empty-stars {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.wrap-empty-stars i { 
+  color: var(--star-gold); 
+  width: 24px; 
+  height: 24px; 
+}
