@@ -17,6 +17,8 @@ import {
   deleteCustomBackgroundBlob 
 } from '../state.js';
 
+import { checkForUpdates } from '../updater.js';
+
 export const VAULT_NAME_STORAGE = 'atenea_vault_name';
 
 /**
@@ -154,6 +156,26 @@ export function initSettingsEvents() {
     localStorage.setItem(VAULT_NAME_STORAGE, name);
     updateAppTitle(name);
     showToast('Nombre actualizado con éxito.');
+  });
+
+  // Comprobación manual de actualizaciones desde GitHub Releases
+  document.getElementById('btn-check-updates-manual')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-check-updates-manual');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="spin"></i> <span>Comprobando...</span>`;
+      refreshLucide();
+    }
+
+    try {
+      await checkForUpdates(true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="download-cloud"></i> <span>Buscar Actualizaciones</span>`;
+        refreshLucide();
+      }
+    }
   });
 
   // Guardar API keys y tokens
