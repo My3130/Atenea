@@ -1,0 +1,175 @@
+/* ============================================================================
+   MODAL-UPDATER.CSS - Estilos del Modal de Actualizaciones y Novedades
+   ============================================================================ */
+
+.modal-updater {
+  padding: 0;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 14px;
+  background: var(--bg-surface, #141416);
+  color: var(--text-main, #f4f4f5);
+  max-width: 480px;
+  width: 90vw;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.modal-updater::backdrop {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+}
+
+.updater-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 18px;
+}
+
+/* Cabecera */
+.updater-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.updater-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.updater-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  flex-shrink: 0;
+}
+
+.updater-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.updater-version-tag {
+  margin: 2px 0 0 0;
+  font-size: 0.8rem;
+  color: #a78bfa;
+  font-weight: 500;
+}
+
+/* Cuerpo / Notas de la versión */
+.updater-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.updater-notes-label {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted, #a1a1aa);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.updater-changelog-box {
+  background: var(--bg-input, #0d0d0f);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.07));
+  border-radius: 8px;
+  padding: 12px 14px;
+  max-height: 160px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-secondary, #d4d4d8);
+}
+
+.updater-changelog-box p {
+  margin: 0;
+}
+
+.updater-empty-notes {
+  color: var(--text-muted, #71717a);
+  font-style: italic;
+}
+
+/* Barra de Progreso */
+.updater-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.updater-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-muted, #a1a1aa);
+}
+
+.updater-progress-track {
+  width: 100%;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.updater-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+/* Pie y Botones */
+.updater-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.btn-confirm-restart {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.btn-confirm-restart:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

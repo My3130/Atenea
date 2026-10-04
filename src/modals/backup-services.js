@@ -2,6 +2,7 @@
 // SRC/MODALS/BACKUP-SERVICES.JS - Exportadores e Importadores
 // (Bóveda Completa .atenea, Obsidian ZIP, Zotero BibTeX, CSV y JSON Universal)
 // - Empaquetado completo de base de datos + colecciones + carátulas Blob (IndexedDB)
+// - Asistente de descarga bajo demanda para portadas importadas (Anti-saturación)
 // - Claves de citación normalizadas en ASCII puro para compatibilidad con LaTeX/Zotero
 // - Autómata finito para importación de CSV con comillas escapadas y saltos de línea
 // ============================================================================
@@ -13,7 +14,8 @@ import {
   saveCustomCollections,
   showToast, 
   isItemDuplicate, 
-  canonicalizeCountry 
+  canonicalizeCountry,
+  canonicalizeTags
 } from '../state.js';
 import { renderActiveView, renderSidebarCollections } from '../views.js';
 import { downloadBlob, parseCSVLine } from './utils.js';
@@ -96,6 +98,90 @@ async function saveCoverBlobToIDB(itemId, blob) {
   } catch (err) {
     return false;
   }
+}
+
+/**
+ * Muestra una notificación interactiva tras importar archivos con portadas web,
+ * permitiendo al usuario decidir si desea descargarlas a su disco local.
+ * @param {Array<object>} items - Lista de obras recién importadas.
+ */
+function promptAndDownloadCovers(items) {
+  const targetItems = items.filter(i => i.coverUrl && i.coverUrl.startsWith('http'));
+  if (targetItems.length === 0) return;
+
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-pill toast-info';
+  toast.style.flexDirection = 'column';
+  toast.style.alignItems = 'flex-start';
+  toast.style.gap = '8px';
+  toast.style.padding = '12px 16px';
+  toast.style.maxWidth = '340px';
+
+  toast.innerHTML = `
+    <div style="display:flex; align-items:center; gap:8px; font-weight:600;">
+      <i data-lucide="image-down"></i>
+      <span>${targetItems.length} obra(s) tienen portadas web.</span>
+    </div>
+    <p style="font-size:0.75rem; color:var(--text-muted); margin:0; line-height:1.35;">
+      ¿Deseas descargarlas a tu disco local para verlas sin conexión a internet?
+    </p>
+    <div style="display:flex; gap:8px; margin-top:4px; align-self:flex-end;">
+      <button type="button" class="btn-secondary" id="btn-skip-covers-import" style="padding:4px 10px; font-size:0.72rem; cursor:pointer;">Omitir</button>
+      <button type="button" class="btn-primary" id="btn-accept-covers-import" style="padding:4px 10px; font-size:0.72rem; cursor:pointer;">⬇️ Descargar (${targetItems.length})</button>
+    </div>
+  `;
+
+  container.appendChild(toast);
+  if (window.lucide) window.lucide.createIcons();
+
+  const btnSkip = toast.querySelector('#btn-skip-covers-import');
+  const btnAccept = toast.querySelector('#btn-accept-covers-import');
+
+  const closeToast = () => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(12px)';
+    setTimeout(() => {
+      if (container.contains(toast)) container.removeChild(toast);
+    }, 250);
+  };
+
+  btnSkip?.addEventListener('click', closeToast);
+
+  btnAccept?.addEventListener('click', async () => {
+    if (btnAccept) btnAccept.disabled = true;
+    if (btnSkip) btnSkip.disabled = true;
+    btnAccept.innerHTML = `<i data-lucide="loader-2"></i> Descargando...`;
+    if (window.lucide) window.lucide.createIcons();
+
+    let downloadedCount = 0;
+    for (let i = 0; i < targetItems.length; i++) {
+      const it = targetItems[i];
+      try {
+        const res = await fetch(it.coverUrl, { mode: 'cors' });
+        if (res.ok) {
+          const blob = await res.blob();
+          await saveCoverBlobToIDB(it.id, blob);
+          downloadedCount++;
+        }
+      } catch (err) {
+        console.warn(`No se pudo descargar portada de ${it.title}:`, err);
+      }
+      // Pausa respetuosa anti-saturación de red
+      await new Promise(r => setTimeout(r, 180));
+    }
+
+    closeToast();
+    showToast(`✅ Se guardaron ${downloadedCount} portadas en tu disco para uso offline.`);
+    renderActiveView();
+  });
 }
 
 /**
@@ -192,6 +278,7 @@ export function initBackupEvents() {
           skippedDuplicates++;
         } else {
           if (item.country) item.country = canonicalizeCountry(item.country);
+          if (item.tags) item.tags = canonicalizeTags(item.tags);
           library.push(item);
           restoredCount++;
         }
@@ -342,6 +429,7 @@ ${item.userNotes || 'Sin notas registradas.'}
       const entries = text.split(/@\w+\s*\{/).filter(Boolean);
       let count = 0;
       let skippedDuplicates = 0;
+      const newlyImported = [];
 
       entries.forEach(entry => {
         const getField = (f) => {
@@ -367,7 +455,7 @@ ${item.userNotes || 'Sin notas registradas.'}
             return;
           }
 
-          library.push({
+          const newItem = {
             id: crypto.randomUUID(),
             type: candidate.type,
             title,
@@ -389,7 +477,10 @@ ${item.userNotes || 'Sin notas registradas.'}
             dateStarted: '',
             dateFinished: new Date().toISOString().split('T')[0],
             createdAt: new Date().toISOString().split('T')[0]
-          });
+          };
+
+          library.push(newItem);
+          newlyImported.push(newItem);
           count++;
         }
       });
@@ -399,6 +490,8 @@ ${item.userNotes || 'Sin notas registradas.'}
       let msg = `Se importaron ${count} referencias de Zotero.`;
       if (skippedDuplicates > 0) msg += ` Se omitieron ${skippedDuplicates} duplicadas.`;
       showToast(msg);
+
+      promptAndDownloadCovers(newlyImported);
     };
     reader.readAsText(file);
   });
@@ -452,6 +545,7 @@ ${item.userNotes || 'Sin notas registradas.'}
 
       let importedCount = 0;
       let skippedDuplicates = 0;
+      const newlyImported = [];
 
       for (let idx = 1; idx < lines.length; idx++) {
         const line = lines[idx];
@@ -468,7 +562,8 @@ ${item.userNotes || 'Sin notas registradas.'}
           const rating = parseInt(cleanCol(cols[8]), 10) || 0;
           const dateStarted = cleanCol(cols[9]) || '';
           const dateFinished = cleanCol(cols[10]) || '';
-          const tags = cleanCol(cols[11]).split(';').map(t => t.trim()).filter(Boolean);
+          const rawTags = cleanCol(cols[11]).split(';').map(t => t.trim()).filter(Boolean);
+          const tags = canonicalizeTags(rawTags);
           const coverUrl = cleanCol(cols[12]) || '';
           const notes = cleanCol(cols[13]) || '';
 
@@ -503,6 +598,7 @@ ${item.userNotes || 'Sin notas registradas.'}
           };
 
           library.push(item);
+          newlyImported.push(item);
           importedCount++;
         }
       }
@@ -512,6 +608,8 @@ ${item.userNotes || 'Sin notas registradas.'}
       let msg = `Se importaron ${importedCount} obras a tu biblioteca.`;
       if (skippedDuplicates > 0) msg += ` Se omitieron ${skippedDuplicates} duplicadas.`;
       showToast(msg);
+
+      promptAndDownloadCovers(newlyImported);
     };
     reader.readAsText(file);
   });
@@ -538,13 +636,16 @@ ${item.userNotes || 'Sin notas registradas.'}
         if (Array.isArray(parsed)) {
           let mergedCount = 0;
           let skippedDuplicates = 0;
+          const newlyImported = [];
 
           parsed.forEach(item => {
             if (isItemDuplicate(item, library)) {
               skippedDuplicates++;
             } else {
               if (item.country) item.country = canonicalizeCountry(item.country);
+              if (item.tags) item.tags = canonicalizeTags(item.tags);
               library.push(item);
+              newlyImported.push(item);
               mergedCount++;
             }
           });
@@ -554,6 +655,8 @@ ${item.userNotes || 'Sin notas registradas.'}
           let msg = `Se restauraron e integraron ${mergedCount} obras con éxito.`;
           if (skippedDuplicates > 0) msg += ` Se omitieron ${skippedDuplicates} duplicadas.`;
           showToast(msg);
+
+          promptAndDownloadCovers(newlyImported);
         } else {
           showToast('Formato JSON no válido.', 'error');
         }

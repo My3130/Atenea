@@ -219,6 +219,8 @@ async fn search_google_books(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             open_external,
             search_supabase_catalog,
@@ -226,5 +228,4 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running atenea application");
-    
 }

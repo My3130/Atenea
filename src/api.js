@@ -229,7 +229,6 @@ export async function searchPublicMetadata(type, query, creator = '', publisher 
   // ==========================================================================
   // 📚 1. LITERATURA: Supabase + Google Books + OpenLibrary (Sin Canibalización)
   // ==========================================================================
-
   if (type === 'book') {
     const cleanDigits = cleanQ.replace(/[-\s]/g, '');
     const isIsbnSearch = (cleanDigits.length === 10 || cleanDigits.length === 13) && /^\d+X?$/i.test(cleanDigits);
@@ -822,14 +821,13 @@ export async function fetchAutomaticCover(item) {
 
 // Modelos rápidos y masivos (Para chat, importación y enriquecimiento con cuotas altas)
 const FAST_MODELS = [
-  'gemini-3.5-flash-lite',
   'gemini-3.1-flash-lite',
-  'gemini-flash-lite-latest'
+  'gemini-3.5-flash-lite'
 ];
 
 // Modelos de alto razonamiento (Exclusivos para El Crítico Cultural y Ensayos Comparativos)
 const PRO_MODELS = [
-  'gemini-pro-latest',
+  'gemini-3.1-flash-lite',
   'gemini-3.5-flash-lite'
 ];
 
@@ -922,7 +920,6 @@ export async function callGeminiChat(userText, imageBase64 = null) {
     contents: currentRequestHistory
   };
 
-  // Usa los modelos rápidos y de alta cuota (FAST_MODELS)
   const rawJson = await callGeminiRaw(payload, apiKey, FAST_MODELS);
   const parsed = safeParseJson(rawJson);
 
@@ -1023,7 +1020,6 @@ RESPONDE EXCLUSIVAMENTE CON ESTE FORMATO JSON:
     contents: [{ role: 'user', parts: [{ text: prompt }] }]
   };
 
-  // Utiliza el modelo Pro de alto razonamiento (PRO_MODELS) para ensayos de máxima calidad
   const raw = await callGeminiRaw(payload, apiKey, PRO_MODELS);
   return safeParseJson(raw);
 }
@@ -1070,7 +1066,6 @@ RESPONDE EXCLUSIVAMENTE CON ESTE FORMATO JSON:
     contents: [{ role: 'user', parts: [{ text: prompt }] }]
   };
 
-  // Utiliza el modelo Pro (PRO_MODELS) para curaduría de alto nivel
   const raw = await callGeminiRaw(payload, apiKey, PRO_MODELS);
   const data = safeParseJson(raw);
   
@@ -1139,7 +1134,6 @@ RESPONDE EXCLUSIVAMENTE CON ESTE FORMATO JSON:
   };
 
   try {
-    // Usa los modelos rápidos (FAST_MODELS)
     const raw = await callGeminiRaw(payload, apiKey, FAST_MODELS);
     const parsed = safeParseJson(raw);
     if (parsed && typeof parsed === 'object') {

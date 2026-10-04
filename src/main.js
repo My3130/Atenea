@@ -1,11 +1,11 @@
 // ============================================================================
 // MAIN.JS - Orquestador Principal y Punto de Entrada de Atenea
-// - Arranque Asíncrono con IndexedDB (AteneaVaultDB)
-// - Descarga no bloqueante de portadas en segundo plano
+// - Arranque Asíncrono Instantáneo con IndexedDB (AteneaVaultDB)
 // - Selector Cíclico de Cuadrículas: Normal ➔ Muro Medio ➔ Muro Compacto
 // - Suite Global de Atajos de Teclado (Power-User / Estilo Obsidian)
 // - Buscador Catálogo Rápido reactivo por disciplina (Libro, Cine, Música)
 // - Reseteo automático de filtros de colección al hacer clic en Biblioteca
+// - Comprobación Automática de Actualizaciones Seguras (Tauri v2 + GitHub)
 // ============================================================================
 
 import { 
@@ -27,6 +27,7 @@ import { searchPublicMetadata, callGeminiChat, fetchAutomaticCover } from './api
 import { renderActiveView, renderCollection, initViewsEvents, renderSidebarCollections } from './views.js';
 import { invalidateAtlasSizes, initAtlasEvents } from './atlas.js';
 import { openCalibreResultsModal, initModals, initVaultName, checkYearlyWrapPrompt, escapeHtml } from './modals.js';
+import { initAutoUpdater } from './updater.js';
 
 // ----------------------------------------------------------------------------
 // 1. CONTROLES NATIVOS DE VENTANA (FRAMELESS TAURI V2)
@@ -583,18 +584,7 @@ function initCustomCollectionsUI() {
 }
 
 // ----------------------------------------------------------------------------
-// 8. COLA DE DESCARGA SILENCIOSA DE PORTADAS
-// ----------------------------------------------------------------------------
-async function cacheMissingCovers() {
-  const itemsToCache = library.filter(i => i.coverUrl && i.coverUrl.startsWith('http'));
-  for (const item of itemsToCache) {
-    await cacheCoverLocally(item.id, item.coverUrl);
-    await new Promise(r => setTimeout(r, 200));
-  }
-}
-
-// ----------------------------------------------------------------------------
-// 9. GESTOR DE ATAJOS DE TECLADO GLOBALES (POWER-USER / OBSIDIAN STYLE)
+// 8. GESTOR DE ATAJOS DE TECLADO GLOBALES (POWER-USER / OBSIDIAN STYLE)
 // ----------------------------------------------------------------------------
 function initGlobalKeyboardShortcuts() {
   window.addEventListener('keydown', (e) => {
@@ -742,7 +732,7 @@ function initGlobalKeyboardShortcuts() {
 }
 
 // ----------------------------------------------------------------------------
-// 10. ARRANQUE DEL SISTEMA CON INDEXEDDB
+// 9. ARRANQUE DEL SISTEMA CON INDEXEDDB (0% NETWORK / 100% INSTANTÁNEO)
 // ----------------------------------------------------------------------------
 initVaultName();
 initModals();
@@ -762,20 +752,21 @@ updateQuickSearchTypeUI(initialQuickType);
 checkYearlyWrapPrompt();
 refreshLucide();
 
-// Carga asíncrona de IndexedDB y renderizado fluido
+// Carga asíncrona de IndexedDB y arranque en tiempo récord
 initAteneaVault(() => {
   renderActiveView();
   refreshLucide();
 
+  // Comprobación no invasiva de actualizaciones tras arrancar la bóveda
+  initAutoUpdater();
+
   if ('requestIdleCallback' in window) {
     requestIdleCallback(() => {
       sanitizeLibraryData();
-      cacheMissingCovers();
     });
   } else {
     setTimeout(() => {
       sanitizeLibraryData();
-      cacheMissingCovers();
     }, 1000);
   }
 });

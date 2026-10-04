@@ -1,0 +1,45 @@
+name: Publicar Release y Actualización
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Instalar dependencias del Frontend
+        run: npm install
+
+      - name: Compilar y Publicar en GitHub Releases
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_BOOKS_API_KEY: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Atenea v__VERSION__'
+          releaseBody: 'Consulta las novedades incluidas en esta actualización de Atenea.'
+          releaseDraft: false
+          prerelease: false
