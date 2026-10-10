@@ -1,13 +1,13 @@
 // ============================================================================
 // SRC/MODALS/MODAL-DETAIL.JS - Ficha Técnica Editorial y Multimedia
+// - Arquitectura Tripartita: General | Bitácora & Ensayos | Detalles de Edición
 // - Auto-Guardado Continuo y Silencioso (Estilo Obsidian/Notion con 0% Lag)
-// - Sistema de Calificación Fraccionaria (0.25 con hover en vivo y reseteo delegado)
-// - Ficha Técnica Extendida con Dualidad Temporal (Año Original vs Año de Edición)
+// - Sincronización Reactiva de Páginas en Tiempo Real
 // - Citación Académica, Archivos Locales (Tauri IPC) y Hub de Streaming
 // ============================================================================
 
 import { 
-  state,
+  state, 
   library, 
   saveLibrary, 
   getStatusIconName, 
@@ -60,7 +60,7 @@ function commitDetailChanges(silent = true) {
 
   if (currentDetailItem.type === 'book') {
     currentDetailItem.details.author = newCreator;
-    currentDetailItem.creator = newCreator; // Sincronización garantizada con vistas y exportadores
+    currentDetailItem.creator = newCreator;
     
     const editPublisher = document.getElementById('book-edit-publisher')?.value.trim();
     const editEdition = document.getElementById('book-edit-edition')?.value.trim();
@@ -76,7 +76,7 @@ function commitDetailChanges(silent = true) {
     currentDetailItem.details.editionNumber = editEdition || '';
     currentDetailItem.details.editionYear = !isNaN(editEditionYear) ? editEditionYear : null;
     currentDetailItem.details.translator = editTranslator || '';
-    currentDetailItem.details.pageCount = !isNaN(editPages) ? editPages : null;
+    currentDetailItem.details.pageCount = (!isNaN(editPages) && editPages > 0) ? editPages : null;
     currentDetailItem.details.isbn = editIsbn || '--';
     currentDetailItem.details.language = normalizeLanguage(editLang || 'Español');
     
@@ -95,7 +95,7 @@ function commitDetailChanges(silent = true) {
     currentDetailItem.details.director = editDirector || newCreator;
     currentDetailItem.creator = currentDetailItem.details.director;
     currentDetailItem.details.studio = editStudio || '';
-    currentDetailItem.details.runtime = !isNaN(editRuntime) ? editRuntime : null;
+    currentDetailItem.details.runtime = (!isNaN(editRuntime) && editRuntime > 0) ? editRuntime : null;
     currentDetailItem.details.voteAverage = editVote || '';
     currentDetailItem.details.cast = editCast ? editCast.split(',').map(a => a.trim()).filter(Boolean) : [];
 
@@ -194,10 +194,6 @@ function updateWishlistButtonUI(isWishlist) {
 // SISTEMA DE CALIFICACIÓN PRECISA (INCREMENTOS DE 0.25)
 // ============================================================================
 
-/**
- * Renderiza la UI de las estrellas fraccionarias y el badge numérico.
- * @param {number} rating 
- */
 function renderStarRatingUI(rating) {
   const stars = document.querySelectorAll('#detail-stars span');
   stars.forEach((star, idx) => {
@@ -241,18 +237,11 @@ function renderStarRatingUI(rating) {
   }
 }
 
-/**
- * Fija la calificación activa y sincroniza la UI.
- * @param {number|string} rating 
- */
 function setStarRating(rating) {
   currentRating = parseFloat(rating) || 0;
   renderStarRatingUI(currentRating);
 }
 
-/**
- * Renderiza el listado de etiquetas interactivas de la obra.
- */
 function renderDetailTags() {
   const wrap = document.getElementById('detail-tags-wrap');
   if (!wrap) return;
@@ -272,26 +261,26 @@ function renderDetailTags() {
 }
 
 /**
- * Alterna entre la pestaña General y Contenido Extendido.
- * @param {'general'|'extended'} tab 
+ * Alterna entre las tres subpestañas: General | Bitácora | Contenido Extendido.
+ * @param {'general'|'logbook'|'extended'} tab 
  */
 function activateDetailSubTab(tab) {
   const btnGeneral = document.getElementById('btn-dtab-general');
+  const btnLogbook = document.getElementById('btn-dtab-logbook');
   const btnExtended = document.getElementById('btn-dtab-extended');
+
   const paneGeneral = document.getElementById('pane-detail-general');
+  const paneLogbook = document.getElementById('pane-detail-logbook');
   const paneExtended = document.getElementById('pane-detail-extended');
 
-  if (tab === 'general') {
-    btnGeneral?.classList.add('active');
-    btnExtended?.classList.remove('active');
-    paneGeneral?.classList.add('active');
-    paneExtended?.classList.remove('active');
-  } else {
-    btnExtended?.classList.add('active');
-    btnGeneral?.classList.remove('active');
-    paneExtended?.classList.add('active');
-    paneGeneral?.classList.remove('active');
-  }
+  btnGeneral?.classList.toggle('active', tab === 'general');
+  btnLogbook?.classList.toggle('active', tab === 'logbook');
+  btnExtended?.classList.toggle('active', tab === 'extended');
+
+  paneGeneral?.classList.toggle('active', tab === 'general');
+  paneLogbook?.classList.toggle('active', tab === 'logbook');
+  paneExtended?.classList.toggle('active', tab === 'extended');
+
   refreshLucide();
 }
 
@@ -341,7 +330,7 @@ function renderMovieExtended(item) {
   const synopsisTextarea = document.getElementById('movie-edit-synopsis');
 
   const runtimeVal = item.details?.runtime || null;
-  if (runtimeBadge) runtimeBadge.textContent = runtimeVal ? `${runtimeVal} min` : 'Duración N/A';
+  if (runtimeBadge) runtimeBadge.textContent = runtimeVal ? `${runtimeVal} min` : '-- min';
 
   if (directorInput) directorInput.value = item.details?.director || item.creator || '';
   if (studioInput) studioInput.value = item.details?.studio || '';
@@ -367,7 +356,7 @@ function renderBookExtended(item) {
   const synopsisTextarea = document.getElementById('book-edit-synopsis');
 
   const pageCount = item.details?.pageCount || null;
-  if (pagesBadge) pagesBadge.textContent = pageCount ? `${pageCount} págs` : 'Páginas N/A';
+  if (pagesBadge) pagesBadge.textContent = pageCount ? `${pageCount} págs` : '-- págs';
 
   if (publisherInput) publisherInput.value = item.details?.publisher || item.publisher || '';
   if (editionInput) editionInput.value = item.details?.editionNumber || item.details?.edition || '';
@@ -384,7 +373,7 @@ function renderBookExtended(item) {
  * @param {string} id - Identificador UUID de la obra.
  */
 export function openDetailModal(id) {
-  const item = library.find(i => i.id === id);
+  const item = library.find(i => String(i.id) === String(id));
   if (!item) return;
   currentDetailItem = item;
 
@@ -455,7 +444,7 @@ export function openDetailModal(id) {
   }
 
   renderDetailTags();
-  activateDetailSubTab('general');
+  activateDetailSubTab('general'); // Inicializa en la pestaña General
 
   const extendedContentMusic = document.getElementById('extended-content-music');
   const extendedContentMovie = document.getElementById('extended-content-movie');
@@ -559,7 +548,7 @@ export function openStreamingHubModal(item) {
 }
 
 // ----------------------------------------------------------------------------
-// INICIALIZACIÓN DE EVENTOS DEL DETALLE CON AUTO-GUARDADO
+// INICIALIZACIÓN DE EVENTOS DEL DETALLE CON LAS 3 SUBPESTAÑAS
 // ----------------------------------------------------------------------------
 export function initDetailModalEvents() {
   const detailModal = document.getElementById('detail-modal');
@@ -571,6 +560,27 @@ export function initDetailModalEvents() {
   const streamingLinksGrid = document.getElementById('streaming-links-grid');
   const detailCustomLinkInput = document.getElementById('detail-custom-link');
   const detailFilePicker = document.getElementById('detail-file-picker');
+
+  const bookEditPages = document.getElementById('book-edit-pages');
+  const bookPagesBadge = document.getElementById('book-pages-badge');
+  const movieEditRuntime = document.getElementById('movie-edit-runtime');
+  const movieRuntimeBadge = document.getElementById('movie-runtime-badge');
+
+  // Sincronización reactiva inmediata de Páginas (Libros)
+  bookEditPages?.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value, 10);
+    if (bookPagesBadge) {
+      bookPagesBadge.textContent = (!isNaN(val) && val > 0) ? `${val} págs` : '-- págs';
+    }
+  });
+
+  // Sincronización reactiva inmediata de Duración (Películas)
+  movieEditRuntime?.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value, 10);
+    if (movieRuntimeBadge) {
+      movieRuntimeBadge.textContent = (!isNaN(val) && val > 0) ? `${val} min` : '-- min';
+    }
+  });
 
   // Auto-guardado reactivo en campos de texto y fechas
   detailModalBox?.addEventListener('input', (e) => {
@@ -625,7 +635,9 @@ export function initDetailModalEvents() {
     });
   }
 
+  // Navegación entre las 3 subpestañas
   document.getElementById('btn-dtab-general')?.addEventListener('click', () => activateDetailSubTab('general'));
+  document.getElementById('btn-dtab-logbook')?.addEventListener('click', () => activateDetailSubTab('logbook'));
   document.getElementById('btn-dtab-extended')?.addEventListener('click', () => activateDetailSubTab('extended'));
 
   document.getElementById('btn-open-streaming-hub')?.addEventListener('click', () => {
@@ -723,7 +735,7 @@ export function initDetailModalEvents() {
     });
   }
 
-  // Delegación sobre el contenedor padre para reiniciar calificación a 0 (anti-bug de creación dinámica)
+  // Delegación sobre el contenedor padre para reiniciar calificación a 0
   const ratingParentContainer = document.querySelector('.rating-container');
   if (ratingParentContainer && !ratingParentContainer.dataset.delegated) {
     ratingParentContainer.dataset.delegated = 'true';

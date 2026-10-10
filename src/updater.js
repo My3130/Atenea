@@ -1,7 +1,8 @@
 // ============================================================================
 // UPDATER.JS - Motor de Actualizaciones Seguras (Vanilla JS nativo Tauri v2)
-// - Cero dependencias de Node / 100% compatible con ESM nativo
-// - Acceso directo a window.__TAURI__.updater y window.__TAURI__.process
+// - Integración con diseño nativo de Atenea (modal modal-md + modal-box)
+// - Diálogo centrado, tema oscuro y barra de progreso fluida
+// - Blindaje anti-cierre accidental con Escape durante la descarga
 // ============================================================================
 
 import { showToast, refreshLucide } from './state.js';
@@ -22,7 +23,7 @@ function getTauriProcess() {
 }
 
 /**
- * Crea o retorna el elemento <dialog> del actualizador en el DOM.
+ * Crea o retorna el elemento <dialog> del actualizador integrado en el tema de Atenea.
  * @returns {HTMLDialogElement}
  */
 function getOrCreateUpdaterModal() {
@@ -31,49 +32,48 @@ function getOrCreateUpdaterModal() {
 
   modal = document.createElement('dialog');
   modal.id = 'modal-updater';
-  modal.className = 'atenea-dialog modal-updater';
+  modal.className = 'modal modal-md';
 
   modal.innerHTML = `
-    <div class="updater-card">
-      <header class="updater-header">
+    <div class="modal-box updater-modal-box">
+      <button class="modal-close-x" id="btn-updater-close" title="Cerrar">✕</button>
+      
+      <div class="updater-header">
         <div class="updater-title-group">
           <div class="updater-icon-badge">
             <i data-lucide="sparkles"></i>
           </div>
           <div>
-            <h2 class="updater-title">Nueva versión disponible</h2>
-            <p class="updater-version-tag" id="updater-version-text">Atenea v0.0.0</p>
+            <h3 class="updater-title" style="margin:0; font-size:1.15rem; font-weight:600;">Nueva versión disponible</h3>
+            <p class="updater-version-tag" id="updater-version-text" style="margin:2px 0 0 0; font-size:0.8rem; color:#a78bfa; font-weight:500;">Atenea v0.0.0</p>
           </div>
         </div>
-        <button type="button" class="modal-close-btn" id="btn-updater-close" title="Cerrar">
-          <i data-lucide="x"></i>
-        </button>
-      </header>
+      </div>
 
-      <section class="updater-body">
-        <h4 class="updater-notes-label">Novedades y mejoras:</h4>
+      <div class="updater-body" style="margin: 14px 0 6px 0; display:flex; flex-direction:column; gap:10px;">
+        <h4 class="updater-notes-label" style="margin:0; font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Novedades y mejoras:</h4>
         <div class="updater-changelog-box" id="updater-changelog">
           <p class="updater-empty-notes">Mejoras de rendimiento, estabilidad y nuevas funciones.</p>
         </div>
 
-        <div class="updater-progress-container hidden" id="updater-progress-wrap">
-          <div class="updater-progress-labels">
+        <div class="updater-progress-container hidden" id="updater-progress-wrap" style="margin-top:6px;">
+          <div class="updater-progress-labels" style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:6px;">
             <span id="updater-progress-status">Descargando actualización...</span>
             <span id="updater-progress-percent">0%</span>
           </div>
-          <div class="updater-progress-track">
-            <div class="updater-progress-bar" id="updater-progress-bar" style="width: 0%;"></div>
+          <div class="updater-progress-track" style="width:100%; height:7px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
+            <div class="updater-progress-bar" id="updater-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #7c3aed, #a855f7); border-radius:999px; transition:width 0.2s ease;"></div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <footer class="updater-footer">
+      <div class="modal-actions" style="margin-top:16px; display:flex; justify-content:flex-end; gap:10px;">
         <button type="button" class="btn-secondary" id="btn-updater-later">Más tarde</button>
-        <button type="button" class="btn-primary" id="btn-updater-action">
+        <button type="button" class="btn-primary" id="btn-updater-action" style="display:inline-flex; align-items:center; gap:8px;">
           <i data-lucide="download"></i>
           <span>Descargar e instalar</span>
         </button>
-      </footer>
+      </div>
     </div>
   `;
 
@@ -88,6 +88,13 @@ function getOrCreateUpdaterModal() {
       modal.close();
     }
   };
+
+  // Bloqueo de cierre con Escape durante la descarga
+  modal.addEventListener('cancel', (e) => {
+    if (isDownloading) {
+      e.preventDefault();
+    }
+  });
 
   btnClose?.addEventListener('click', handleDismiss);
   btnLater?.addEventListener('click', handleDismiss);
@@ -111,11 +118,11 @@ async function handleUpdaterAction() {
   const progressPercent = modal.querySelector('#updater-progress-percent');
   const progressStatus = modal.querySelector('#updater-progress-status');
 
-  // Si ya terminó de descargar, reiniciar
+  // 1. Si ya terminó la descarga, reiniciar la aplicación
   if (btnAction?.dataset.state === 'restart') {
     try {
       btnAction.disabled = true;
-      btnAction.innerHTML = `<i data-lucide="loader-2" class="spin"></i> Reiniciando...`;
+      btnAction.innerHTML = `<i data-lucide="loader-2" class="spin"></i> <span>Reiniciando...</span>`;
       refreshLucide();
 
       const proc = getTauriProcess();
@@ -131,14 +138,14 @@ async function handleUpdaterAction() {
     return;
   }
 
-  // Iniciar descarga e instalación
+  // 2. Descargar e instalar el paquete firmado
   try {
     isDownloading = true;
     if (btnLater) btnLater.disabled = true;
     if (btnClose) btnClose.style.display = 'none';
 
     btnAction.disabled = true;
-    btnAction.innerHTML = `<i data-lucide="loader-2" class="spin"></i> Instalando...`;
+    btnAction.innerHTML = `<i data-lucide="loader-2" class="spin"></i> <span>Instalando...</span>`;
     progressWrap?.classList.remove('hidden');
     refreshLucide();
 
@@ -174,11 +181,14 @@ async function handleUpdaterAction() {
       }
     });
 
+    // 3. Listo para reiniciar
     isDownloading = false;
     btnAction.disabled = false;
     btnAction.dataset.state = 'restart';
     btnAction.classList.remove('btn-primary');
     btnAction.classList.add('btn-confirm-restart');
+    btnAction.style.background = '#10b981';
+    btnAction.style.color = '#ffffff';
     btnAction.innerHTML = `<i data-lucide="rotate-cw"></i> <span>Reiniciar Atenea</span>`;
     showToast('Actualización lista. Reinicia para aplicar los cambios.', 'success');
     refreshLucide();

@@ -13,14 +13,14 @@ import {
   library, 
   saveLibrary, 
   refreshLucide, 
-  THEME_STORAGE,
-  applyBackgroundTheme,
-  addCustomCollection,
-  showToast,
-  isItemDuplicate,
-  sanitizeLibraryData,
-  initAteneaVault,
-  cacheCoverLocally
+  THEME_STORAGE, 
+  applyBackgroundTheme, 
+  addCustomCollection, 
+  showToast, 
+  isItemDuplicate, 
+  sanitizeLibraryData, 
+  initAteneaVault, 
+  cacheCoverLocally 
 } from './state.js';
 
 import { searchPublicMetadata, callGeminiChat, fetchAutomaticCover } from './api.js';
@@ -299,11 +299,6 @@ const QUICK_CATALOG_TYPES = {
   }
 };
 
-/**
- * Actualiza dinámicamente las etiquetas y placeholders del formulario
- * según la disciplina activa (Libro, Película, Música).
- * @param {'book'|'movie'|'music'} type 
- */
 function updateQuickSearchTypeUI(type) {
   const config = QUICK_CATALOG_TYPES[type] || QUICK_CATALOG_TYPES.book;
   const labelTitle = document.querySelector('label[for="quick-title-input"]');
@@ -318,7 +313,6 @@ function updateQuickSearchTypeUI(type) {
   if (quickPublisherInput) quickPublisherInput.placeholder = config.publisherPlaceholder;
 }
 
-// Escuchar cambios de disciplina en los botones de radio
 document.querySelectorAll('input[name="quick-type"]').forEach(radio => {
   radio.addEventListener('change', (e) => {
     updateQuickSearchTypeUI(e.target.value);
@@ -451,7 +445,8 @@ chatForm?.addEventListener('submit', async (e) => {
         return;
       }
 
-      if (!resItem.id) resItem.id = crypto.randomUUID();
+      // Generación garantizada de UUID único independiente
+      resItem.id = crypto.randomUUID();
       if (!resItem.createdAt) resItem.createdAt = new Date().toISOString().split('T')[0];
       if (!resItem.coverUrl) resItem.coverUrl = await fetchAutomaticCover(resItem);
 
@@ -745,7 +740,6 @@ updateNavTabs();
 updateFilterTabs();
 updateGridToggleUI(state.currentViewMode);
 
-// Inicializar textos y placeholders del Catálogo Rápido según la opción activa
 const initialQuickType = document.querySelector('input[name="quick-type"]:checked')?.value || 'book';
 updateQuickSearchTypeUI(initialQuickType);
 

@@ -3,6 +3,8 @@
    - Aceleración por hardware aislada en DirectComposition para Ambient Glow
    - Calificación por estrellas fraccionarias con respuesta táctil inmediata
    - Subpestañas, citas académicas, enlaces streaming y El Crítico Cultural
+   - Soporte nativo para Modo Claro y Modo Oscuro mediante variables CSS
+   - Editor de Bitácora y Ensayos de alta capacidad (Estilo Obsidian/Notion)
    ============================================================================ */
 
 .detail-box { 
@@ -564,6 +566,33 @@
   line-height: 1.4; 
 }
 
+/* ============================================================================
+   EDITOR DE BITÁCORA Y ENSAYOS (PESTAÑA DEDICADA AMPLIA)
+   ============================================================================ */
+#pane-detail-logbook #detail-notes,
+.logbook-textarea { 
+  width: 100%; 
+  min-height: 220px; 
+  max-height: 420px;
+  background: var(--bg-main); 
+  border: 1px solid var(--border-color); 
+  color: var(--text-main); 
+  padding: 14px 16px; 
+  border-radius: var(--radius); 
+  resize: vertical; 
+  outline: none; 
+  font-size: 0.88rem; 
+  line-height: 1.65; 
+  letter-spacing: 0.01em;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#pane-detail-logbook #detail-notes:focus,
+.logbook-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.18);
+}
+
 .extended-section {
   display: flex;
   flex-direction: column;
@@ -586,6 +615,21 @@
   align-items: center;
   gap: 6px;
   color: var(--text-main);
+}
+
+.badge-pill {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(124, 58, 237, 0.15);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+[data-theme="light"] .badge-pill {
+  background: rgba(124, 58, 237, 0.1);
+  color: #6d28d9;
 }
 
 .tracklist-container {

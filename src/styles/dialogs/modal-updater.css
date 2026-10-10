@@ -2,28 +2,12 @@
    MODAL-UPDATER.CSS - Estilos del Modal de Actualizaciones y Novedades
    ============================================================================ */
 
-.modal-updater {
-  padding: 0;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  border-radius: 14px;
-  background: var(--bg-surface, #141416);
-  color: var(--text-main, #f4f4f5);
-  max-width: 480px;
-  width: 90vw;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  overflow: hidden;
-}
-
-.modal-updater::backdrop {
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
-}
-
-.updater-card {
+.updater-modal-box {
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  gap: 18px;
+  gap: 14px;
+  max-width: 480px;
+  width: 100%;
 }
 
 /* Cabecera */
@@ -31,6 +15,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-right: 28px; /* Espacio para el botón de cierre [✕] */
 }
 
 .updater-title-group {
@@ -75,7 +60,7 @@
 
 .updater-notes-label {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted, #a1a1aa);
   text-transform: uppercase;
@@ -111,7 +96,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .updater-progress-labels {
@@ -136,35 +121,7 @@
   transition: width 0.2s ease;
 }
 
-/* Pie y Botones */
-.updater-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 6px;
-}
-
-.btn-confirm-restart {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 18px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.88rem;
-  background: #10b981;
-  color: #ffffff;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.1s ease;
-}
-
-.btn-confirm-restart:hover {
-  opacity: 0.92;
-  transform: translateY(-1px);
-}
-
+/* Animación de Spinner */
 .spin {
   animation: spin 1s linear infinite;
 }

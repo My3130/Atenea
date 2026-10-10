@@ -557,7 +557,6 @@ export function renderSidebarCollections() {
     return;
   }
 
-  // Conteo en una sola pasada O(N) para máxima velocidad
   const countsMap = new Map();
   customCollections.forEach(c => countsMap.set(c, 0));
 
@@ -611,7 +610,6 @@ function initCollectionEventDelegation() {
   mediaContainer.dataset.delegated = 'true';
 
   mediaContainer.addEventListener('click', (e) => {
-    // 1. Quitar de la colección activa
     const removeColBtn = e.target.closest('.btn-remove-from-collection');
     if (removeColBtn) {
       e.stopPropagation();
@@ -628,12 +626,11 @@ function initCollectionEventDelegation() {
       return;
     }
 
-    // 2. Alternar Estado
     const statusBtn = e.target.closest('.btn-status-toggle');
     if (statusBtn) {
       e.stopPropagation();
       const id = statusBtn.dataset.id;
-      const targetItem = library.find(i => i.id === id);
+      const targetItem = library.find(i => String(i.id) === String(id));
       if (!targetItem) return;
 
       const cycle = { 'todo': 'in_progress', 'in_progress': 'completed', 'completed': 'todo' };
@@ -642,7 +639,6 @@ function initCollectionEventDelegation() {
       return;
     }
 
-    // 3. Editar Portada
     const coverBtn = e.target.closest('.btn-edit-cover');
     if (coverBtn) {
       e.stopPropagation();
@@ -650,7 +646,6 @@ function initCollectionEventDelegation() {
       return;
     }
 
-    // 4. Eliminar
     const deleteBtn = e.target.closest('.btn-delete-item');
     if (deleteBtn) {
       e.stopPropagation();
@@ -658,7 +653,6 @@ function initCollectionEventDelegation() {
       return;
     }
 
-    // 5. Filtrar por Tag
     const tagBadge = e.target.closest('.tag-badge');
     if (tagBadge && tagBadge.dataset.tag) {
       e.stopPropagation();
@@ -666,7 +660,6 @@ function initCollectionEventDelegation() {
       return;
     }
 
-    // 6. Abrir Detalle
     const cardEl = e.target.closest('.media-card, .media-list-row, .media-poster-card');
     if (cardEl && cardEl.dataset.id) {
       openDetailModal(cardEl.dataset.id);
@@ -758,7 +751,7 @@ function initSidebarCollectionsDelegation() {
       e.stopPropagation();
       const colName = deleteBtn.dataset.collection;
       deleteCustomCollection(colName);
-      renderActiveView(); // Sincronización atómica con el router principal
+      renderActiveView();
       showToast(`Colección "${colName}" eliminada.`);
       return;
     }
@@ -1153,7 +1146,6 @@ export function initViewsEvents() {
   initCollectionEventDelegation();
   initSidebarCollectionsDelegation();
 
-  // Red de rescate global para garantizar que isDragging nunca quede atascado en true
   const resetDraggingState = () => {
     if (state.isDragging) {
       state.isDragging = false;

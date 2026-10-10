@@ -47,9 +47,18 @@
     <div class="bg-overlay"></div>
   </div>
 
-  <!-- 1. BARRA DE TÍTULO SUPERIOR DEDICADA (ESTILO OBSIDIAN / VS CODE) -->
+  <!-- 1. BARRA DE TÍTULO SUPERIOR DEDICADA CON BUSCADOR INTEGRADO (ESTILO VS CODE / OBSIDIAN) -->
   <div class="custom-titlebar" data-tauri-drag-region>
-    <div class="titlebar-drag-area" data-tauri-drag-region></div>
+    <div class="titlebar-drag-area titlebar-left-drag" data-tauri-drag-region></div>
+    
+    <!-- Buscador Superior Integrado en la Titlebar -->
+    <div class="titlebar-center-search">
+      <i data-lucide="search" class="titlebar-search-icon"></i>
+      <input type="text" id="search-input" placeholder="Buscar en tu biblioteca (Ctrl+F)..." spellcheck="false" autocomplete="off" />
+    </div>
+
+    <div class="titlebar-drag-area titlebar-right-drag" data-tauri-drag-region></div>
+    
     <div class="window-controls">
       <button id="win-btn-minimize" class="win-btn" title="Minimizar">&#x2014;</button>
       <button id="win-btn-maximize" class="win-btn" title="Maximizar">&#x25A2;</button>
@@ -77,7 +86,7 @@
       </div>
 
       <nav class="nav-filters">
-        <!-- PERSPECTIVAS Y VISTAS -->
+        <!-- PERSPECTIVAS Y VISTAS OFICIALES -->
         <p class="section-title">PERSPECTIVAS</p>
         <button class="tab-btn active" data-view="library"><i data-lucide="grid"></i> Biblioteca <small style="margin-left:auto; opacity:0.5; font-size:0.65rem;">Ctrl+1</small></button>
         <button class="tab-btn" data-view="timeline"><i data-lucide="clock"></i> Cronología <small style="margin-left:auto; opacity:0.5; font-size:0.65rem;">Ctrl+2</small></button>
@@ -127,10 +136,7 @@
           </div>
         </div>
 
-        <div class="nav-center-search">
-          <input type="text" id="search-input" placeholder="Buscar (Ctrl+F)..." />
-        </div>
-
+        <!-- HERRAMIENTAS DE LA DERECHA (FIJAS Y SIN DESPLAZARSE) -->
         <div class="nav-right-tools">
           <select id="sort-select" class="sort-dropdown" title="Ordenar por">
             <option value="recent">🕒 Recientes</option>
@@ -333,7 +339,7 @@
             <input type="text" id="quick-title-input" placeholder="Ej: Trilce, 1984, Cien años de soledad..." required />
           </div>
 
-          <div class="form-row">
+          <div class="form-row" id="quick-creator-row">
             <label for="quick-creator-input">Autor o Autora (Opcional):</label>
             <input type="text" id="quick-creator-input" placeholder="Ej: César Vallejo, George Orwell..." />
           </div>
@@ -454,7 +460,7 @@
     </div>
   </dialog>
 
-  <!-- 2. FICHA TÉCNICA (CON AUTO-GUARDADO CONTINUO) -->
+  <!-- 2. FICHA TÉCNICA (CON ARQUITECTURA TRIPARTITA: GENERAL | BITÁCORA | EDICIÓN) -->
   <dialog id="detail-modal" class="modal modal-lg">
     <div class="modal-box detail-box" id="detail-modal-box">
       <div class="ambient-glow-backdrop">
@@ -482,7 +488,7 @@
             </div>
           </div>
 
-          <!-- RÓTULOS DE FECHAS CORREGIDOS -->
+          <!-- RÓTULOS DE FECHAS -->
           <div class="dates-container">
             <label>📅 Empezado / Registrado:</label>
             <input type="date" id="detail-date-started" />
@@ -497,16 +503,20 @@
         </div>
 
         <div class="detail-info-col">
+          <!-- BARRA DE SUBPESTAÑAS TRIPARTITA -->
           <div class="detail-subtabs-bar">
             <button type="button" class="detail-subtab-btn active" id="btn-dtab-general">
-              <i data-lucide="file-text"></i> General
+              <i data-lucide="info"></i> General
+            </button>
+            <button type="button" class="detail-subtab-btn" id="btn-dtab-logbook">
+              <i data-lucide="book-open"></i> Bitácora & Ensayos
             </button>
             <button type="button" class="detail-subtab-btn" id="btn-dtab-extended">
               <i data-lucide="layers"></i> <span id="detail-extended-tab-label">Contenido y Ficha</span>
             </button>
           </div>
 
-          <!-- PESTAÑA 1: GENERAL -->
+          <!-- PESTAÑA 1: GENERAL (METADATOS ESENCIALES) -->
           <div class="detail-tab-pane active" id="pane-detail-general">
             <div class="detail-header-info">
               <span id="detail-type-badge" class="type-badge-pill">Libro</span>
@@ -517,7 +527,7 @@
             </div>
             <div class="detail-meta-grid">
               <div><label>📍 País de Origen:</label><input type="text" id="detail-edit-country" /></div>
-              <div><label>📅 Año:</label><input type="number" id="detail-edit-year" /></div>
+              <div><label>📅 Año Original:</label><input type="number" id="detail-edit-year" /></div>
             </div>
             <div class="tags-manager-section">
               <label class="input-sublabel">🏷️ Etiquetas:</label>
@@ -551,14 +561,22 @@
                 </button>
               </div>
             </div>
+          </div>
 
+          <!-- PESTAÑA 2: BITÁCORA, ENSAYOS Y CRÍTICO CULTURAL -->
+          <div class="detail-tab-pane" id="pane-detail-logbook">
             <div class="detail-notes-section">
-              <label for="detail-notes">📝 <strong>Bitácora y Notas Personales</strong>:</label>
-              <textarea id="detail-notes" placeholder="Tus reflexiones, citas favoritas o crítica..."></textarea>
+              <label for="detail-notes" style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:4px;">
+                📝 <strong>Bitácora, Ensayos y Notas Personales</strong>:
+              </label>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">
+                Espacio de redacción libre para reflexiones profundas, citas textuales, ensayos o síntesis de análisis externos.
+              </p>
+              <textarea id="detail-notes" class="logbook-textarea" placeholder="Escribe aquí tus reflexiones, citas favoritas, notas de lectura o ensayo sobre la obra..."></textarea>
             </div>
 
-            <!-- SECCIÓN: EL CRÍTICO CULTURAL -->
-            <div class="detail-critic-section">
+            <!-- SECCIÓN: EL CRÍTICO CULTURAL (GEMINI IA) -->
+            <div class="detail-critic-section" style="margin-top:16px;">
               <div class="critic-header">
                 <div class="critic-title-wrap">
                   <i data-lucide="brain-circuit" class="critic-icon"></i>
@@ -580,7 +598,7 @@
             </div>
           </div>
 
-          <!-- PESTAÑA 2: CONTENIDO EXTENDIDO -->
+          <!-- PESTAÑA 3: CONTENIDO EXTENDIDO (EDICIÓN / CINE / MÚSICA) -->
           <div class="detail-tab-pane" id="pane-detail-extended">
             
             <!-- MÚSICA -->
@@ -631,7 +649,7 @@
               </div>
             </div>
 
-            <!-- LIBROS -->
+            <!-- LIBROS (CON SINCRONIZACIÓN REACTIVA DE PÁGINAS) -->
             <div id="extended-content-book" class="extended-section hidden">
               <div class="extended-header">
                 <h4><i data-lucide="book-open"></i> Detalles de Edición & Publicación</h4>
@@ -649,10 +667,9 @@
                   <input type="text" id="book-edit-edition" placeholder="Ej: 1ª ed., Edición Crítica, Bolsillo..." />
                 </div>
 
-                <!-- CAMPO: AÑO DE ESTA EDICIÓN FÍSICA -->
                 <div class="form-row">
                   <label class="input-sublabel">📅 Año de esta Edición:</label>
-                  <input type="number" id="book-edit-edition-year" placeholder="Ej: 2017" />
+                  <input type="number" id="book-edit-edition-year" placeholder="Ej: 2024" />
                 </div>
 
                 <div class="form-row">
@@ -941,14 +958,14 @@ O bien pega un bloque JSON [ { ... } ]"></textarea>
             </div>
           </div>
 
-          <!-- SECCIÓN: ACTUALIZACIONES DEL SISTEMA -->
+          <!-- SECCIÓN: ACTUALIZACIONES DEL SISTEMA CON LECTURA DINÁMICA -->
           <div class="settings-section-card" style="margin-top:14px;">
             <h4><i data-lucide="refresh-cw"></i> Actualizaciones de Atenea</h4>
             <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
               Comprueba si hay nuevas versiones, mejoras de rendimiento o novedades disponibles en GitHub.
             </p>
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-              <span style="font-size:0.78rem; color:var(--text-muted);">Versión instalada: <strong style="color:var(--text-normal, #f4f4f5);">v0.2.1</strong></span>
+              <span style="font-size:0.78rem; color:var(--text-muted);">Versión instalada: <strong id="settings-installed-version" style="color:var(--text-normal, #9d4ce9);">...</strong></span>
               <button type="button" id="btn-check-updates-manual" class="btn-secondary" style="display:inline-flex; align-items:center; gap:8px;">
                 <i data-lucide="download-cloud"></i>
                 <span>Buscar Actualizaciones</span>
@@ -959,7 +976,6 @@ O bien pega un bloque JSON [ { ... } ]"></textarea>
 
         <!-- SUBPESTAÑA 2: FONDO & AMBIENTE -->
         <div class="settings-tab-pane" id="pane-settings-ambient">
-          
           <div class="settings-section-card">
             <div class="ambient-toggle-row">
               <div>

@@ -46,6 +46,26 @@ export function initVaultName() {
 }
 
 /**
+ * Lee dinámicamente la versión real del ejecutable desde Tauri v2
+ * y actualiza la etiqueta en la interfaz de Configuración.
+ */
+async function syncInstalledVersionUI() {
+  const versionEl = document.getElementById('settings-installed-version');
+  if (!versionEl) return;
+
+  try {
+    if (window.__TAURI__?.app?.getVersion) {
+      const ver = await window.__TAURI__.app.getVersion();
+      versionEl.textContent = `v${ver}`;
+    } else {
+      versionEl.textContent = 'v0.2.2';
+    }
+  } catch (err) {
+    versionEl.textContent = 'v0.2.2';
+  }
+}
+
+/**
  * Sincroniza visualmente los estados de la pestaña de Fondos (switch automático,
  * tarjetas de presets y detección de imagen en IndexedDB).
  */
@@ -128,13 +148,14 @@ export function initSettingsEvents() {
   const btnUseCustomBg = document.getElementById('btn-use-custom-bg');
   const btnDeleteCustomBg = document.getElementById('btn-delete-custom-bg');
 
-  // Abrir modal y cargar valores guardados
+  // Abrir modal, sincronizar versión instalada y cargar valores guardados
   document.getElementById('btn-open-general-settings')?.addEventListener('click', () => {
     if (generalVaultInput) generalVaultInput.value = localStorage.getItem(VAULT_NAME_STORAGE) || 'Mi mundo';
     if (geminiKeyInput) geminiKeyInput.value = localStorage.getItem(API_KEY_STORAGE) || '';
     if (omdbKeyInput) omdbKeyInput.value = localStorage.getItem(OMDB_KEY_STORAGE) || '';
     if (discogsTokenInput) discogsTokenInput.value = localStorage.getItem(DISCOGS_TOKEN_STORAGE) || '';
 
+    syncInstalledVersionUI();
     activateSettingsSubTab('general');
     generalSettingsModal?.showModal();
     refreshLucide();
