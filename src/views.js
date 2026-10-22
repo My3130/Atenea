@@ -20,7 +20,8 @@ import {
   removeItemFromCollection, 
   deleteCustomCollection, 
   flushDeferredRender, 
-  queueDeferredRender 
+  queueDeferredRender,
+  blobUrlCache 
 } from './state.js';
 
 import { 
@@ -63,6 +64,20 @@ function isValidCover(url) {
     clean.startsWith('./') ||
     clean.startsWith('/')
   );
+}
+
+/**
+ * Resuelve la URL de la portada priorizando el Blob local en RAM (blobUrlCache)
+ * para garantizar funcionamiento 100% offline o si los servidores externos caen.
+ * @param {object} item 
+ * @returns {string}
+ */
+function resolveCoverUrl(item) {
+  if (!item) return '';
+  if (blobUrlCache.has(item.id)) {
+    return blobUrlCache.get(item.id);
+  }
+  return isValidCover(item.coverUrl) ? item.coverUrl : '';
 }
 
 /**
@@ -247,7 +262,8 @@ export function filterAndSortItems() {
 }
 
 function buildCardElement(item, viewMode) {
-  const hasCover = isValidCover(item.coverUrl);
+  const resolvedCover = resolveCoverUrl(item);
+  const hasCover = Boolean(resolvedCover);
   const typeIcon = item.type === 'book' ? 'book' : (item.type === 'movie' ? 'film' : 'disc');
   const safeTitle = escapeHtml(item.title || 'Sin título');
   const statusIcon = getStatusIconName(item.type, item.status);
@@ -275,7 +291,7 @@ function buildCardElement(item, viewMode) {
     const wishlistBadge = item.isWishlist ? `<div class="poster-wishlist-badge"><i data-lucide="sparkles"></i></div>` : '';
     
     const coverHtml = hasCover
-      ? `<img src="${escapeHtml(item.coverUrl)}" alt="${safeTitle}" class="poster-cover-img" draggable="false" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="poster-cover-img" draggable="false" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
          <div class="poster-placeholder-fallback hidden">
            <i data-lucide="${typeIcon}"></i>
            <span>${safeTitle}</span>
@@ -303,7 +319,7 @@ function buildCardElement(item, viewMode) {
     card.setAttribute('draggable', 'true');
 
     const coverHtml = hasCover
-      ? `<img src="${escapeHtml(item.coverUrl)}" alt="${safeTitle}" class="card-cover" draggable="false" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="card-cover" draggable="false" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
          <div class="card-placeholder-fallback hidden">
            <i data-lucide="${typeIcon}"></i>
            <span>${safeTitle}</span>
@@ -358,7 +374,7 @@ function buildCardElement(item, viewMode) {
     row.setAttribute('draggable', 'true');
 
     const thumbHtml = hasCover
-      ? `<img src="${escapeHtml(item.coverUrl)}" class="list-thumb" draggable="false" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      ? `<img src="${escapeHtml(resolvedCover)}" class="list-thumb" draggable="false" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
          <div class="list-thumb-placeholder hidden"><i data-lucide="${typeIcon}"></i></div>`
       : `<div class="list-thumb-placeholder"><i data-lucide="${typeIcon}"></i></div>`;
 
@@ -846,10 +862,11 @@ export function renderCalendar() {
 
     let itemsHtml = '';
     dayItems.slice(0, 2).forEach(it => {
-      const hasCover = isValidCover(it.coverUrl);
+      const resolvedCover = resolveCoverUrl(it);
+      const hasCover = Boolean(resolvedCover);
       const safeTitle = escapeHtml(it.title || 'Sin título');
       const thumbHtml = hasCover
-        ? `<img src="${escapeHtml(it.coverUrl)}" alt="${safeTitle}" class="cal-mini-thumb" loading="lazy" decoding="async" onerror="this.style.display='none';" />`
+        ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="cal-mini-thumb" loading="lazy" decoding="async" onerror="this.style.display='none';" />`
         : ``;
 
       const creator = escapeHtml(it.details?.author || it.details?.director || it.details?.artist || it.creator || '');
@@ -951,12 +968,13 @@ function renderVerticalTimeline() {
       card.className = 'timeline-card';
       card.dataset.id = item.id;
 
-      const hasCover = isValidCover(item.coverUrl);
+      const resolvedCover = resolveCoverUrl(item);
+      const hasCover = Boolean(resolvedCover);
       const typeIcon = item.type === 'book' ? 'book' : (item.type === 'movie' ? 'film' : 'disc');
 
       const safeTitle = escapeHtml(item.title || 'Sin título');
       const thumbHtml = hasCover
-        ? `<img src="${escapeHtml(item.coverUrl)}" alt="${safeTitle}" class="timeline-card-thumb" loading="lazy" decoding="async" onerror="this.style.display='none';" />`
+        ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="timeline-card-thumb" loading="lazy" decoding="async" onerror="this.style.display='none';" />`
         : `<div class="timeline-thumb-placeholder"><i data-lucide="${typeIcon}"></i></div>`;
 
       const creator = escapeHtml(item.details?.author || item.details?.director || item.details?.artist || item.creator || 'Creador');

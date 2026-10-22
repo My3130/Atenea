@@ -115,12 +115,40 @@ function openVaultDB() {
 }
 
 /**
- * Inicializa y migra transparentemente los datos existentes de localStorage hacia IndexedDB.
+ * Inicializa y migra transparentemente los datos existentes de localStorage hacia IndexedDB,
+ * y pre-carga instantáneamente todas las portadas en el mapa de memoria RAM (blobUrlCache).
  */
 export async function initAteneaVault(onReadyCallback) {
   try {
     const db = await openVaultDB();
 
+    // 1. Pre-cargar TODAS las portadas de IndexedDB hacia la RAM al arrancar (Acceso 100% Offline)
+    try {
+      const tx = db.transaction(STORE_COVERS, 'readonly');
+      const store = tx.objectStore(STORE_COVERS);
+      await new Promise((resolve) => {
+        const req = store.openCursor();
+        req.onsuccess = (e) => {
+          const cursor = e.target.result;
+          if (cursor) {
+            if (cursor.value instanceof Blob) {
+              const id = String(cursor.key);
+              if (!blobUrlCache.has(id)) {
+                blobUrlCache.set(id, URL.createObjectURL(cursor.value));
+              }
+            }
+            cursor.continue();
+          } else {
+            resolve(true);
+          }
+        };
+        req.onerror = () => resolve(true);
+      });
+    } catch (coverErr) {
+      console.warn('No se pudieron pre-cargar las portadas locales al arrancar:', coverErr);
+    }
+
+    // 2. Cargar Biblioteca de Obras
     const items = await new Promise((resolve) => {
       const tx = db.transaction(STORE_LIBRARY, 'readonly');
       const store = tx.objectStore(STORE_LIBRARY);
@@ -167,10 +195,8 @@ async function saveLibraryToIDB() {
  * para garantizar cero congelamientos de interfaz.
  */
 export function saveLibrary(onSavedCallback) {
-  // Persistencia principal asíncrona en IndexedDB
   saveLibraryToIDB().catch(() => {});
 
-  // Delegar el stringify pesado de localStorage a momentos de ocio de CPU
   const persistLocalStorageIdle = () => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(library));
@@ -197,7 +223,7 @@ export function saveLibrary(onSavedCallback) {
 // ============================================================================
 // 2. MOTOR DE CACHÉ Y PURGA DE PORTADAS (OFFLINE PERMANENTE & ZERO GHOSTS)
 // ============================================================================
-const blobUrlCache = new Map();
+export const blobUrlCache = new Map();
 
 /**
  * Descarga una imagen remota y la almacena localmente en IndexedDB.
@@ -206,6 +232,9 @@ const blobUrlCache = new Map();
  */
 export async function cacheCoverLocally(itemId, url) {
   if (!itemId || !url || !url.startsWith('http')) return;
+
+  // Si ya la tenemos en caché RAM, no la volvemos a descargar
+  if (blobUrlCache.has(itemId)) return;
 
   try {
     const res = await fetch(url, { mode: 'cors' });
