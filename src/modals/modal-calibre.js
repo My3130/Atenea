@@ -14,7 +14,8 @@ import {
   refreshLucide, 
   showToast, 
   API_KEY_STORAGE, 
-  state 
+  state,
+  cacheCoverLocally 
 } from '../state.js';
 import { renderActiveView } from '../views.js';
 import { enrichBookMetadataWithAi, fetchAlbumTracklist } from '../api.js';
@@ -260,6 +261,11 @@ export function initCalibreModalEvents() {
     calibreModal?.close();
     state.currentActiveView = 'library';
     saveLibrary(renderActiveView);
+
+    // Guardar la portada localmente en IndexedDB de inmediato para acceso 100% offline
+    if (newItem.coverUrl) {
+      cacheCoverLocally(newItem.id, newItem.coverUrl);
+    }
 
     const trackCount = newItem.details?.tracklist?.length || 0;
     const trackMsg = trackCount > 0 ? ` (${trackCount} pistas incluidas)` : '';
