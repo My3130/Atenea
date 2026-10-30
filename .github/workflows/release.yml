@@ -40,6 +40,15 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Atenea v__VERSION__'
-          releaseBody: 'Consulta las novedades incluidas en esta actualización de Atenea.'
-          releaseDraft: false
+          releaseBody: |
+            ## 🚀 Atenea v__VERSION__ - Actualizaciones Refinadas
+
+            Esta versión trae mejoras en la experiencia del actualizador y correcciones visuales.
+
+            ### ✨ Novedades
+            - **Pantalla de actualización renovada:** El modal de nueva versión ahora muestra el registro de cambios real (changelog) con formato premium y un enlace directo a GitHub.
+            - **Corrección de CSP:** Solucionado el bloqueo de imágenes locales (portadas en caché) que afectaba a la versión 0.2.5.
+            
+            *Actualización automática recomendada.*
+          releaseDraft: true
           prerelease: false

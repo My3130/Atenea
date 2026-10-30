@@ -1,7 +1,7 @@
 {
   "name": "biblioteca-atenea",
   "private": true,
-  "version": "0.2.5",
+  "version": "0.2.6",
   "type": "module",
   "description": "Atenea es una aplicación de escritorio offline-first diseñada para catalogar y explorar tu colección cultural.",
   "scripts": {
