@@ -161,25 +161,30 @@ export function initSecondaryModalEvents() {
   document.getElementById('btn-close-cover-modal')?.addEventListener('click', () => coverModal?.close());
   document.getElementById('btn-cancel-cover')?.addEventListener('click', () => coverModal?.close());
   document.getElementById('btn-save-cover')?.addEventListener('click', async () => {
-    if (itemToEditCoverId) {
-      const targetItem = library.find(i => i.id === itemToEditCoverId);
-      if (targetItem) {
-        const newCover = coverModalInput?.value.trim() || '';
-        targetItem.coverUrl = newCover;
-
-        if (newCover) {
-          await cacheCoverLocally(targetItem.id, newCover);
-        } else {
+      if (itemToEditCoverId) {
+        const targetItem = library.find(i => i.id === itemToEditCoverId);
+        if (targetItem) {
+          const newCover = coverModalInput?.value.trim() || '';
+          
+          // 1. ELIMINAMOS LA CACHÉ VIEJA SIEMPRE (Esto es la clave del fix)
           await deleteCachedCover(targetItem.id);
-        }
 
-        saveLibrary(renderActiveView);
-        showToast('Portada actualizada y guardada localmente.');
+          // 2. Actualizamos la URL en el objeto de la obra
+          targetItem.coverUrl = newCover;
+
+          // 3. Si hay una nueva URL, la guardamos en caché
+          if (newCover) {
+            await cacheCoverLocally(targetItem.id, newCover);
+          }
+
+          // 4. Guardamos y forzamos el redibujado de toda la interfaz
+          saveLibrary(renderActiveView);
+          showToast('Portada actualizada y guardada localmente.');
+        }
       }
-    }
-    coverModal?.close();
-    itemToEditCoverId = null;
-  });
+      coverModal?.close();
+      itemToEditCoverId = null;
+    });
 
   // Modal Eliminación: elimina del catálogo y purga el Blob de IndexedDB
   document.getElementById('btn-cancel-delete')?.addEventListener('click', () => deleteModal?.close());

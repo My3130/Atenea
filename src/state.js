@@ -842,6 +842,15 @@ export function sanitizeLibraryData() {
   }
 }
 
+function sanitizeToastText(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export function showToast(message, type = 'success') {
   let container = document.getElementById('toast-container');
   if (!container) {
@@ -858,7 +867,8 @@ export function showToast(message, type = 'success') {
   if (type === 'error') iconName = 'alert-circle';
   if (type === 'info') iconName = 'info';
 
-  toast.innerHTML = `<i data-lucide="${iconName}"></i> <span>${message}</span>`;
+  // Usamos sanitizeToastText
+  toast.innerHTML = `<i data-lucide="${iconName}"></i> <span>${sanitizeToastText(message)}</span>`;
   container.appendChild(toast);
   refreshLucide();
 
@@ -870,6 +880,7 @@ export function showToast(message, type = 'success') {
     }, 250);
   }, 2600);
 }
+
 
 export function getStatusIconName(type, status) {
   if (type === 'book') {

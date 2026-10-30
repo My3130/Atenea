@@ -60,7 +60,9 @@ function isValidCover(url) {
     clean.startsWith('http://') ||
     clean.startsWith('https://') ||
     clean.startsWith('blob:') ||
-    clean.startsWith('data:image/') ||
+    clean.startsWith('data:image/png') ||
+    clean.startsWith('data:image/jpeg') ||
+    clean.startsWith('data:image/webp') ||
     clean.startsWith('./') ||
     clean.startsWith('/')
   );
@@ -291,7 +293,7 @@ function buildCardElement(item, viewMode) {
     const wishlistBadge = item.isWishlist ? `<div class="poster-wishlist-badge"><i data-lucide="sparkles"></i></div>` : '';
     
     const coverHtml = hasCover
-      ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="poster-cover-img" draggable="false" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="poster-cover-img" draggable="false" loading="lazy" decoding="async" />
          <div class="poster-placeholder-fallback hidden">
            <i data-lucide="${typeIcon}"></i>
            <span>${safeTitle}</span>
@@ -319,7 +321,7 @@ function buildCardElement(item, viewMode) {
     card.setAttribute('draggable', 'true');
 
     const coverHtml = hasCover
-      ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="card-cover" draggable="false" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="card-cover" draggable="false" loading="lazy" decoding="async" />
          <div class="card-placeholder-fallback hidden">
            <i data-lucide="${typeIcon}"></i>
            <span>${safeTitle}</span>
@@ -374,7 +376,7 @@ function buildCardElement(item, viewMode) {
     row.setAttribute('draggable', 'true');
 
     const thumbHtml = hasCover
-      ? `<img src="${escapeHtml(resolvedCover)}" class="list-thumb" draggable="false" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      ? `<img src="${escapeHtml(resolvedCover)}" class="list-thumb" draggable="false" loading="lazy" decoding="async" />
          <div class="list-thumb-placeholder hidden"><i data-lucide="${typeIcon}"></i></div>`
       : `<div class="list-thumb-placeholder"><i data-lucide="${typeIcon}"></i></div>`;
 
@@ -625,6 +627,18 @@ function initCollectionEventDelegation() {
   if (!mediaContainer || mediaContainer.dataset.delegated === 'true') return;
   mediaContainer.dataset.delegated = 'true';
 
+  mediaContainer.addEventListener('error', (e) => {
+    // Comprobamos si es una imagen (ya sea de portada, de lista o de calendario)
+    if (e.target.tagName === 'IMG') {
+      e.target.style.display = 'none';
+      const fallback = e.target.nextElementSibling;
+      if (fallback && fallback.classList.contains('hidden')) {
+        fallback.classList.remove('hidden');
+        fallback.style.display = 'flex';
+      }
+    }
+  }, true);
+
   mediaContainer.addEventListener('click', (e) => {
     const removeColBtn = e.target.closest('.btn-remove-from-collection');
     if (removeColBtn) {
@@ -866,7 +880,7 @@ export function renderCalendar() {
       const hasCover = Boolean(resolvedCover);
       const safeTitle = escapeHtml(it.title || 'Sin título');
       const thumbHtml = hasCover
-        ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="cal-mini-thumb" loading="lazy" decoding="async" onerror="this.style.display='none';" />`
+        ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="cal-mini-thumb" loading="lazy" decoding="async" />`
         : ``;
 
       const creator = escapeHtml(it.details?.author || it.details?.director || it.details?.artist || it.creator || '');
@@ -974,7 +988,7 @@ function renderVerticalTimeline() {
 
       const safeTitle = escapeHtml(item.title || 'Sin título');
       const thumbHtml = hasCover
-        ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="timeline-card-thumb" loading="lazy" decoding="async" onerror="this.style.display='none';" />`
+        ? `<img src="${escapeHtml(resolvedCover)}" alt="${safeTitle}" class="timeline-card-thumb" loading="lazy" decoding="async" />`
         : `<div class="timeline-thumb-placeholder"><i data-lucide="${typeIcon}"></i></div>`;
 
       const creator = escapeHtml(item.details?.author || item.details?.director || item.details?.artist || item.creator || 'Creador');
@@ -1056,17 +1070,20 @@ export function initOrUpdateGraph() {
 
   filteredItems.forEach(item => {
     const workId = `work-${item.id}`;
-    addNode(workId, item.title, item.type, 5);
+    const safeTitle = escapeHtml(item.title || 'Sin título');
+    addNode(workId, safeTitle, item.type, 5);
 
     if (item.country) {
-      const countryId = `country-${item.country}`;
-      addNode(countryId, item.country, 'country', 4);
+      const safeCountry = escapeHtml(item.country);
+      const countryId = `country-${safeCountry}`;
+      addNode(countryId, safeCountry, 'country', 4);
       links.push({ source: workId, target: countryId });
     }
 
     (item.tags || []).forEach(tag => {
-      const tagId = `tag-${tag}`;
-      addNode(tagId, tag, 'tag', 3);
+      const safeTag = escapeHtml(tag);
+      const tagId = `tag-${safeTag}`;
+      addNode(tagId, safeTag, 'tag', 3);
       links.push({ source: workId, target: tagId });
     });
   });
