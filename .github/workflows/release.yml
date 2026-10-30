@@ -41,14 +41,14 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Atenea v__VERSION__'
           releaseBody: |
-            ## 🚀 Atenea v__VERSION__ - Actualizaciones Refinadas
+            ## 🛠️ Atenea v__VERSION__ - Corrección de Portadas y Estabilidad
 
-            Esta versión trae mejoras en la experiencia del actualizador y correcciones visuales.
+            Esta actualización soluciona un problema crítico introducido en la versión anterior relacionado con la seguridad y la caché local.
 
-            ### ✨ Novedades
-            - **Pantalla de actualización renovada:** El modal de nueva versión ahora muestra el registro de cambios real (changelog) con formato premium y un enlace directo a GitHub.
-            - **Corrección de CSP:** Solucionado el bloqueo de imágenes locales (portadas en caché) que afectaba a la versión 0.2.5.
-            
-            *Actualización automática recomendada.*
+            ### 🐛 Correcciones
+            - **Fix de Portadas Locales (CSP):** Se ha corregido la política de seguridad (Content Security Policy) que bloqueaba silenciosamente la carga de las portadas guardadas en la caché local (IndexedDB). Ahora las imágenes vuelven a mostrarse correctamente en la vista principal de la biblioteca.
+            - **Estabilidad General:** Mejoras internas en el manejo de errores de red.
+
+            *Actualización recomendada para todos los usuarios de la v0.2.5.*
           releaseDraft: true
           prerelease: false
