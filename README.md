@@ -22,7 +22,7 @@
     *   **Cronología y Calendario:** Visualiza tus adquisiciones o lanzamientos a lo largo del tiempo.
 *   🏷️ **Catálogo Rápido:** Integración con APIs (Google Books, OMDb, MusicBrainz) para autocompletar portadas, ISBN, tracklists y sinopsis.
 *   🔒 **Privacidad Radical:** 100% Local. Sin servidores, sin cuentas, sin telemetría.
-*   🎨 **Interfaz Inmersiva:** Diseño espacial con Glassmorphism y modo oscuro nativo.
+*   🎨 **Interfaz Inmersiva:** Diseño espacial con Glassmorphism y modo claro/oscuro
 
 ## 🚀 Instalación
 
