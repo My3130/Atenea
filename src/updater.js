@@ -3,6 +3,7 @@
 // - Integración con diseño nativo de Atenea (modal modal-md + modal-box)
 // - Diálogo centrado, tema oscuro y barra de progreso fluida
 // - Blindaje anti-cierre accidental con Escape durante la descarga
+// - Mini-parser de Markdown para el changelog + Enlace directo a GitHub
 // ============================================================================
 
 import { showToast, refreshLucide } from './state.js';
@@ -52,9 +53,14 @@ function getOrCreateUpdaterModal() {
 
       <div class="updater-body" style="margin: 14px 0 6px 0; display:flex; flex-direction:column; gap:10px;">
         <h4 class="updater-notes-label" style="margin:0; font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Novedades y mejoras:</h4>
-        <div class="updater-changelog-box" id="updater-changelog">
+        <div class="updater-changelog-box" id="updater-changelog" style="max-height: 200px; overflow-y: auto;">
           <p class="updater-empty-notes">Mejoras de rendimiento, estabilidad y nuevas funciones.</p>
         </div>
+
+        <!-- Enlace directo a GitHub -->
+        <a href="#" id="updater-github-link" target="_blank" style="display:inline-block; margin-top:4px; font-size:0.75rem; color:#a78bfa; text-decoration:none; font-weight:500;">
+          Ver detalles completos en GitHub →
+        </a>
 
         <div class="updater-progress-container hidden" id="updater-progress-wrap" style="margin-top:6px;">
           <div class="updater-progress-labels" style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:6px;">
@@ -236,18 +242,33 @@ export async function checkForUpdates(isManual = false) {
     const modal = getOrCreateUpdaterModal();
     const versionTag = modal.querySelector('#updater-version-text');
     const changelogBox = modal.querySelector('#updater-changelog');
+    const githubLink = modal.querySelector('#updater-github-link');
 
     if (versionTag) {
       versionTag.textContent = `Versión ${update.version}`;
     }
 
+    // Actualizar el enlace de GitHub dinámicamente
+    if (githubLink) {
+      githubLink.href = `https://github.com/My3130/Atenea/releases/tag/v${update.version}`;
+    }
+
     if (changelogBox) {
       if (update.body && update.body.trim().length > 0) {
-        const formattedNotes = escapeHtml(update.body)
-          .split('\n')
-          .filter(line => line.trim().length > 0)
-          .map(line => `<p>${line.startsWith('-') || line.startsWith('*') ? '• ' + line.substring(1).trim() : line}</p>`)
-          .join('');
+        // Mini-parser de Markdown
+        let formattedNotes = escapeHtml(update.body)
+          .replace(/^### (.*$)/gim, '<h4 style="margin: 8px 0 4px 0; font-size:0.85rem; color:var(--text-normal);">$1</h4>')
+          .replace(/^## (.*$)/gim, '<h3 style="margin: 10px 0 4px 0; font-size:0.9rem; color:var(--text-normal);">$1</h3>')
+          .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+          .replace(/^\* (.*$)/gim, '<li style="margin-left:14px;">$1</li>')
+          .replace(/^- (.*$)/gim, '<li style="margin-left:14px;">$1</li>');
+          
+        formattedNotes = formattedNotes.split('\n').map(line => {
+            if (!line.trim()) return '';
+            if (line.includes('<h') || line.includes('<li')) return line;
+            return `<p style="margin: 4px 0; font-size:0.8rem; color:var(--text-muted);">${line}</p>`;
+        }).join('');
+
         changelogBox.innerHTML = formattedNotes;
       } else {
         changelogBox.innerHTML = '<p class="updater-empty-notes">Mejoras de rendimiento, estabilidad y nuevas funciones.</p>';
