@@ -9,6 +9,7 @@ import {
   OMDB_KEY_STORAGE, 
   DISCOGS_TOKEN_STORAGE, 
   API_KEY_STORAGE, 
+  GOOGLE_BOOKS_KEY_STORAGE,
   BG_PRESETS, 
   applyBackgroundTheme, 
   detectSeasonByMonth, 
@@ -58,10 +59,10 @@ async function syncInstalledVersionUI() {
       const ver = await window.__TAURI__.app.getVersion();
       versionEl.textContent = `v${ver}`;
     } else {
-      versionEl.textContent = 'v0.2.2';
+      versionEl.textContent = 'v0.2.7';
     }
   } catch (err) {
-    versionEl.textContent = 'v0.2.2';
+    versionEl.textContent = 'v0.2.7';
   }
 }
 
@@ -143,6 +144,7 @@ export function initSettingsEvents() {
   const geminiKeyInput = document.getElementById('gemini-key-input');
   const omdbKeyInput = document.getElementById('omdb-key-input');
   const discogsTokenInput = document.getElementById('discogs-token-input');
+  const googleBooksKeyInput = document.getElementById('google-books-key-input');
   const toggleBgAuto = document.getElementById('toggle-bg-auto');
   const inputCustomBgFile = document.getElementById('input-custom-bg-file');
   const btnUseCustomBg = document.getElementById('btn-use-custom-bg');
@@ -154,6 +156,7 @@ export function initSettingsEvents() {
     if (geminiKeyInput) geminiKeyInput.value = localStorage.getItem(API_KEY_STORAGE) || '';
     if (omdbKeyInput) omdbKeyInput.value = localStorage.getItem(OMDB_KEY_STORAGE) || '';
     if (discogsTokenInput) discogsTokenInput.value = localStorage.getItem(DISCOGS_TOKEN_STORAGE) || '';
+    if (googleBooksKeyInput) googleBooksKeyInput.value = localStorage.getItem(GOOGLE_BOOKS_KEY_STORAGE) || '';
 
     syncInstalledVersionUI();
     activateSettingsSubTab('general');
@@ -199,11 +202,12 @@ export function initSettingsEvents() {
     }
   });
 
-  // Guardar API keys y tokens
+  // Guardar API keys y tokens (incluyendo Google Books opcional)
   document.getElementById('btn-save-settings')?.addEventListener('click', () => {
     if (geminiKeyInput) localStorage.setItem(API_KEY_STORAGE, geminiKeyInput.value.trim());
     if (omdbKeyInput) localStorage.setItem(OMDB_KEY_STORAGE, omdbKeyInput.value.trim());
     if (discogsTokenInput) localStorage.setItem(DISCOGS_TOKEN_STORAGE, discogsTokenInput.value.trim());
+    if (googleBooksKeyInput) localStorage.setItem(GOOGLE_BOOKS_KEY_STORAGE, googleBooksKeyInput.value.trim());
     showToast('Claves y tokens guardados con éxito.');
   });
 

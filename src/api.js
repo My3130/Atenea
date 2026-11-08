@@ -10,7 +10,8 @@
 import { 
   API_KEY_STORAGE, 
   OMDB_KEY_STORAGE, 
-  DISCOGS_TOKEN_STORAGE, 
+  DISCOGS_TOKEN_STORAGE,
+  GOOGLE_BOOKS_KEY_STORAGE, 
   canonicalizeCountry, 
   canonicalizeTags, 
   isItemDuplicate 
@@ -293,11 +294,13 @@ export async function searchPublicMetadata(type, query, creator = '', publisher 
       const gbResults = [];
       try {
         let rawJson = '{"items":[]}';
+        const userGoogleKey = localStorage.getItem(GOOGLE_BOOKS_KEY_STORAGE) || '';
         const invokeParams = {
           query: isIsbnSearch ? cleanDigits : cleanQ,
           creator: cleanC || null,
           publisher: cleanP || null,
-          isIsbn: isIsbnSearch
+          isIsbn: isIsbnSearch,
+          apiKey: userGoogleKey.trim() || null
         };
 
         if (window.__TAURI__?.core?.invoke) {

@@ -1,9 +1,9 @@
 // ============================================================================
-// LIB.RS - Backend Tauri v2 de Atenea
+// LIB.RS - Backend Tauri v2 de Atenea (v0.2.7)
 // - Comando open_external blindado (sin cmd.exe, anti-RCE y anti-UNC)
 // - Validación estricta con std::path::Path y extensiones canónicas
 // - Consulta segura a Supabase con credenciales de entorno en tiempo de compilación
-// - Motor Nativo Google Books con Clave API de entorno (0% exposición en Git)
+// - Motor Nativo Google Books Híbrido: Anónimo por IP o con Clave Personal Opcional
 // ============================================================================
 
 use std::path::Path;
@@ -100,7 +100,7 @@ async fn search_supabase_catalog(
     is_isbn: bool,
 ) -> Result<String, String> {
     const SUPABASE_URL: &str = "https://pkwriwasentlhuzzueht.supabase.co";
-    // Clave leída de forma segura desde las variables de entorno de compilación
+    // Clave anónima leída en tiempo de compilación desde .env
     const SUPABASE_ANON_KEY: &str = env!("SUPABASE_ANON_KEY");
 
     let clean_q = query.trim();
@@ -108,7 +108,6 @@ async fn search_supabase_catalog(
         return Ok("[]".to_string());
     }
 
-    // Preparamos el payload JSON para la función RPC de Supabase
     let payload = if is_isbn {
         serde_json::json!({
             "p_isbn": clean_q,
@@ -152,7 +151,7 @@ async fn search_supabase_catalog(
 }
 
 // ----------------------------------------------------------------------------
-// 3. CONSULTA NATIVA A GOOGLE BOOKS CON CLAVE DE ENTORNO
+// 3. CONSULTA NATIVA A GOOGLE BOOKS (ANÓNIMA O CON CLAVE PERSONAL OPCIONAL)
 // ----------------------------------------------------------------------------
 #[tauri::command]
 async fn search_google_books(
@@ -160,10 +159,8 @@ async fn search_google_books(
     creator: Option<String>,
     publisher: Option<String>,
     is_isbn: bool,
+    api_key: Option<String>,
 ) -> Result<String, String> {
-    // Clave leída de forma segura desde las variables de entorno de compilación
-    const GOOGLE_BOOKS_API_KEY: &str = env!("GOOGLE_BOOKS_API_KEY");
-
     let clean_q = query.trim();
     if clean_q.is_empty() {
         return Ok("{\"items\":[]}".to_string());
@@ -190,16 +187,25 @@ async fn search_google_books(
 
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(6))
+        .user_agent("AteneaCulturalApp/2.0 (contacto@atenea.local)")
         .build()
         .map_err(|e| e.to_string())?;
 
+    let mut query_params: Vec<(&str, String)> = vec![
+        ("q", search_q),
+        ("maxResults", "25".to_string()),
+    ];
+
+    if let Some(ref key) = api_key {
+        let clean_key = key.trim();
+        if !clean_key.is_empty() {
+            query_params.push(("key", clean_key.to_string()));
+        }
+    }
+
     let response = client
         .get("https://www.googleapis.com/books/v1/volumes")
-        .query(&[
-            ("q", &search_q),
-            ("maxResults", &"25".to_string()),
-            ("key", &GOOGLE_BOOKS_API_KEY.to_string()),
-        ])
+        .query(&query_params)
         .send()
         .await
         .map_err(|e| format!("Fallo de conexión con Google Books: {}", e))?;

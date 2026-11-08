@@ -1089,7 +1089,7 @@ O bien pega un bloque JSON [ { ... } ]"></textarea>
 
         </div>
 
-        <!-- SUBPESTAÑA 3: APIS Y CONEXIONES -->
+        <!-- SUBPESTAÑA 3: APIS Y CONEXIONES (CON CAMPO OPCIONAL PARA GOOGLE BOOKS) -->
         <div class="settings-tab-pane" id="pane-settings-api">
           <div class="settings-section-card">
             <h4><i data-lucide="key"></i> Claves de Conexión Local</h4>
@@ -1111,6 +1111,12 @@ O bien pega un bloque JSON [ { ... } ]"></textarea>
               <div class="form-row">
                 <label for="discogs-token-input">Discogs Personal Access Token (Música y Vinilos):</label>
                 <input type="password" id="discogs-token-input" placeholder="Token personal de discogs.com" />
+              </div>
+
+              <!-- Campo Opcional para Google Books: si se deja vacío, busca anónimamente por IP -->
+              <div class="form-row">
+                <label for="google-books-key-input">Google Books API Key (Opcional - Catálogo Literario):</label>
+                <input type="password" id="google-books-key-input" placeholder="AIzaSy... (Opcional, dejar vacío para búsqueda anónima)" />
               </div>
             </div>
 

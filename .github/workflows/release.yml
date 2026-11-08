@@ -36,19 +36,22 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          GOOGLE_BOOKS_API_KEY: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Atenea v__VERSION__'
           releaseBody: |
-            ## 🛠️ Atenea v__VERSION__ - Corrección de Portadas y Estabilidad
+            ## 🛠️ Atenea v0.2.7 - Privacidad Total, Portadas Locales y Estabilidad
 
-            Esta actualización soluciona un problema crítico introducido en la versión anterior relacionado con la seguridad y la caché local.
+            Esta actualización trae mejoras críticas en la privacidad de tus datos y soluciona el problema de carga de las portadas locales. 
+
+            ### ✨ Novedades y Privacidad
+            - **Modelo "Bring Your Own Key" (BYOK):** Hemos eliminado la clave API pública de Google Books por motivos de seguridad. Ahora, si deseas usar el catálogo de Google Books, deberás ingresar tu propia clave API gratuita en el **Centro de Configuración > APIs & Conexiones**. Tus claves se guardan 100% en tu disco local.
+            - **Aviso Legal Actualizado:** Se ha añadido la documentación correspondiente sobre el uso de metadatos y portadas en el repositorio.
 
             ### 🐛 Correcciones
-            - **Fix de Portadas Locales (CSP):** Se ha corregido la política de seguridad (Content Security Policy) que bloqueaba silenciosamente la carga de las portadas guardadas en la caché local (IndexedDB). Ahora las imágenes vuelven a mostrarse correctamente en la vista principal de la biblioteca.
+            - **Fix de Portadas Locales (CSP):** Se ha corregido la política de seguridad (Content Security Policy) que bloqueaba silenciosamente la carga de las portadas guardadas en la caché local (IndexedDB). Ahora las imágenes vuelven a mostrarse correctamente en la vista principal de tu biblioteca.
             - **Estabilidad General:** Mejoras internas en el manejo de errores de red.
 
-            *Actualización recomendada para todos los usuarios de la v0.2.5.*
+            *Actualización muy recomendada para todos los usuarios. Asegúrate de configurar tu clave de Google Books si usabas esa función.*
           releaseDraft: true
           prerelease: false

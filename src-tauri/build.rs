@@ -9,9 +9,6 @@ fn main() {
     if let Ok(val) = std::env::var("SUPABASE_ANON_KEY") {
         println!("cargo:rustc-env=SUPABASE_ANON_KEY={}", val);
     }
-    if let Ok(val) = std::env::var("GOOGLE_BOOKS_API_KEY") {
-        println!("cargo:rustc-env=GOOGLE_BOOKS_API_KEY={}", val);
-    }
 
     tauri_build::build();
 }

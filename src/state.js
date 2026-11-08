@@ -9,6 +9,7 @@ export const STORAGE_KEY = 'mediavault_items';
 export const API_KEY_STORAGE = 'mediavault_gemini_key';
 export const OMDB_KEY_STORAGE = 'mediavault_omdb_key';
 export const DISCOGS_TOKEN_STORAGE = 'mediavault_discogs_token';
+export const GOOGLE_BOOKS_KEY_STORAGE = 'mediavault_google_books_key';
 export const THEME_STORAGE = 'mediavault_theme';
 
 // Claves de persistencia de Fondos Ambientales
