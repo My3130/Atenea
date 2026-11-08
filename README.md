@@ -37,3 +37,7 @@ Las contribuciones son bienvenidas. Si encuentras un bug o tienes una idea para 
 
 ## 📄 Licencia
 Este proyecto está bajo la Licencia MIT.
+
+## ⚖️ Aviso Legal y DMCA
+
+Este proyecto es una herramienta de código abierto sin fines de lucro diseñada para la gestión de bibliotecas personales. Los metadatos y portadas mostrados pertenecen a sus respectivos autores y editoriales, y se utilizan únicamente con fines de identificación bibliográfica.
