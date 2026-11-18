@@ -886,23 +886,39 @@
 }
 
 /* ============================================================================
-   3. GRAFO DE CONEXIONES CULTURALES
+   3. GRAFO DE CONEXIONES CULTURALES & ÁRBOL CELESTIAL (MODO INMERSIVO)
    ============================================================================ */
+.graph-mode-toggle {
+  display: flex;
+  background: var(--bg-main);
+  padding: 3px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  gap: 2px;
+}
+
 .graph-view-container {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 32px);
   width: 100%;
-  padding: 14px 20px 18px 20px;
-  gap: 10px;
+  padding: 0;
+  gap: 0;
+  position: relative;
   contain: layout size;
 }
 
 .graph-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  z-index: 25;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--bg-card);
+  backdrop-filter: blur(14px);
   border: 1px solid var(--border-color);
   padding: 8px 14px;
   border-radius: var(--radius);
@@ -910,6 +926,48 @@
   gap: 10px;
   contain: paint layout;
   isolation: isolate;
+}
+
+.btn-toggle-graph-toolbar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-main);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  padding: 0;
+}
+
+.btn-toggle-graph-toolbar:hover {
+  color: var(--text-main);
+  border-color: var(--accent);
+}
+
+.btn-toggle-graph-toolbar .lucide {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.22s ease;
+}
+
+/* Estado colapsado: solo queda el cuadradito flotando en la esquina derecha */
+.graph-toolbar.collapsed {
+  left: auto;
+  width: auto;
+  padding: 5px;
+}
+
+.graph-toolbar.collapsed .graph-title-info,
+.graph-toolbar.collapsed .graph-type-filters {
+  display: none;
+}
+
+.graph-toolbar.collapsed .btn-toggle-graph-toolbar .lucide {
+  transform: rotate(180deg);
 }
 
 .graph-title-info { 
@@ -954,15 +1012,57 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
-.cultural-graph-canvas {
+.cultural-graph-canvas,
+.cultural-tree-canvas {
   flex: 1;
   width: 100%;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
+  height: 100%;
+  border: none;
+  border-radius: 0;
   background-color: transparent !important;
   overflow: hidden;
   position: relative;
   contain: strict;
+}
+
+/* MODO INMERSIVO: Barra superior retráctil al pasar el ratón por arriba */
+.main-content.graph-immersive {
+  position: relative;
+  padding: 0 !important;
+}
+
+.main-content.graph-immersive .top-nav-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bg-card);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 20px;
+  transform: translateY(calc(-100% + 14px));
+  opacity: 0;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+}
+
+.main-content.graph-immersive .top-nav-bar::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(140, 155, 165, 0.45);
+  pointer-events: none;
+}
+
+.main-content.graph-immersive .top-nav-bar:hover,
+.main-content.graph-immersive .top-nav-bar:focus-within {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 /* ============================================================================

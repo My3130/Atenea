@@ -40,18 +40,14 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Atenea v__VERSION__'
           releaseBody: |
-            ## 🛠️ Atenea v0.2.7 - Privacidad Total, Portadas Locales y Estabilidad
+            ## 🛠️ Atenea v0.2.8 - Árbol Celestial 3D, interruptor de hardware RAM/GPU, constelaciones selectivas, barra retráctil
 
-            Esta actualización trae mejoras críticas en la privacidad de tus datos y soluciona el problema de carga de las portadas locales. 
+            Esta actualización trae mejoras de diseño
 
-            ### ✨ Novedades y Privacidad
-            - **Modelo "Bring Your Own Key" (BYOK):** Hemos eliminado la clave API pública de Google Books por motivos de seguridad. Ahora, si deseas usar el catálogo de Google Books, deberás ingresar tu propia clave API gratuita en el **Centro de Configuración > APIs & Conexiones**. Tus claves se guardan 100% en tu disco local.
-            - **Aviso Legal Actualizado:** Se ha añadido la documentación correspondiente sobre el uso de metadatos y portadas en el repositorio.
+            ### ✨ Novedades
+            - **Modelo de Árbol 3D:** Se ha implementado un modelo de árbol 3D optimizado para representar la estructura de la biblioteca como una constelación. La visualización 3D de un árbol de conocimiento convierte la experiencia del usuario en algo más intuitivo y atractivo a diferencia de la representación tradicional en 2D.
+            - **Interruptor de Hardware RAM/GPU:** Se ha añadido un interruptor que permite a los usuarios elegir entre utilizar la RAM o la GPU para el procesamiento de datos. Esto permite una mayor flexibilidad y optimización del rendimiento según las capacidades del sistema del usuario. 
 
-            ### 🐛 Correcciones
-            - **Fix de Portadas Locales (CSP):** Se ha corregido la política de seguridad (Content Security Policy) que bloqueaba silenciosamente la carga de las portadas guardadas en la caché local (IndexedDB). Ahora las imágenes vuelven a mostrarse correctamente en la vista principal de tu biblioteca.
-            - **Estabilidad General:** Mejoras internas en el manejo de errores de red.
-
-            *Actualización muy recomendada para todos los usuarios. Asegúrate de configurar tu clave de Google Books si usabas esa función.*
+            *Actualización recomendada para todos los usuarios. Se recomienda reiniciar la aplicación después de la instalación.*
           releaseDraft: true
           prerelease: false

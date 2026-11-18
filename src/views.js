@@ -34,8 +34,8 @@ import {
 } from './modals.js';
 
 import { initOrUpdateAtlas } from './atlas.js';
+import { initOrUpdateGraph, pauseGraph } from './graph.js';
 
-let graphInstance = null;
 let draggedItemId = null;
 let viewsEventsInitialized = false;
 const MONTH_NAMES = [
@@ -169,6 +169,11 @@ export function renderActiveView() {
     return;
   }
 
+  // Solo pausar el motor gráfico si salimos de la pestaña Grafo
+  if (state.currentActiveView !== 'graph') {
+    pauseGraph();
+  }
+
   const mediaContainer = document.getElementById('media-container');
   const timelineView = document.getElementById('timeline-view');
   const graphView = document.getElementById('graph-view');
@@ -176,6 +181,20 @@ export function renderActiveView() {
   const statsView = document.getElementById('stats-view');
   const viewModeToggle = document.getElementById('view-mode-toggle');
   const sortSelect = document.getElementById('sort-select');
+  const mainContent = document.querySelector('.main-content');
+  const topNavBar = document.querySelector('.top-nav-bar');
+  const subHeader = document.querySelector('.sub-header');
+
+  // Asegurar que la barra superior nunca quede bloqueada permanentemente
+  topNavBar?.classList.remove('hidden');
+
+  if (state.currentActiveView === 'graph') {
+    mainContent?.classList.add('graph-immersive');
+    subHeader?.classList.add('hidden');
+  } else {
+    mainContent?.classList.remove('graph-immersive');
+    subHeader?.classList.remove('hidden');
+  }
 
   mediaContainer?.classList.add('hidden');
   timelineView?.classList.add('hidden');
@@ -204,19 +223,6 @@ export function renderActiveView() {
   } else if (state.currentActiveView === 'stats') {
     statsView?.classList.remove('hidden');
     renderStatsDashboard();
-  }
-
-  // Protección anti-excepciones para instancias de librerías externas
-  if (graphInstance) {
-    if (state.currentActiveView === 'graph') {
-      if (typeof graphInstance.resumeAnimation === 'function') {
-        graphInstance.resumeAnimation();
-      }
-    } else {
-      if (typeof graphInstance.pauseAnimation === 'function') {
-        graphInstance.pauseAnimation();
-      }
-    }
   }
 
   refreshLucide();
@@ -1020,156 +1026,6 @@ function renderVerticalTimeline() {
   refreshLucide();
 }
 
-// ----------------------------------------------------------------------------
-// 7. GRAFO DE CONEXIONES CULTURALES (CONSTELACIÓN TRANSPARENTE)
-// ----------------------------------------------------------------------------
-function getNodeColor(node) {
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  if (node.group === 'book') return '#3b82f6';
-  if (node.group === 'movie') return '#ef4444';
-  if (node.group === 'music') return '#a855f7';
-  if (node.group === 'country') return '#10b981';
-  if (node.group === 'tag') return '#f59e0b';
-  return isLight ? '#475569' : '#e2e8f0';
-}
-
-export function initOrUpdateGraph() {
-  const graphCanvas = document.getElementById('cultural-graph-canvas');
-  const graphStatsText = document.getElementById('graph-stats-text');
-  if (!graphCanvas) return;
-
-  const activeGraphType = state.graphTypeFilter || 'all';
-
-  const filteredItems = library.filter(item => {
-    if (activeGraphType === 'all') return true;
-    return item.type === activeGraphType;
-  });
-
-  if (filteredItems.length === 0) {
-    if (graphInstance) {
-      if (typeof graphInstance.pauseAnimation === 'function') {
-        graphInstance.pauseAnimation();
-      }
-      graphInstance = null;
-    }
-    graphCanvas.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:50px;">No hay obras disponibles para esta vista del grafo.</div>`;
-    if (graphStatsText) graphStatsText.textContent = `0 nodos conectados`;
-    return;
-  }
-
-  const nodes = [];
-  const links = [];
-  const nodeSet = new Set();
-
-  const addNode = (id, name, group, val = 4) => {
-    if (!nodeSet.has(id)) {
-      nodeSet.add(id);
-      nodes.push({ id, name, group, val });
-    }
-  };
-
-  filteredItems.forEach(item => {
-    const workId = `work-${item.id}`;
-    const safeTitle = escapeHtml(item.title || 'Sin título');
-    addNode(workId, safeTitle, item.type, 5);
-
-    if (item.country) {
-      const safeCountry = escapeHtml(item.country);
-      const countryId = `country-${safeCountry}`;
-      addNode(countryId, safeCountry, 'country', 4);
-      links.push({ source: workId, target: countryId });
-    }
-
-    (item.tags || []).forEach(tag => {
-      const safeTag = escapeHtml(tag);
-      const tagId = `tag-${safeTag}`;
-      addNode(tagId, safeTag, 'tag', 3);
-      links.push({ source: workId, target: tagId });
-    });
-  });
-
-  if (graphStatsText) graphStatsText.textContent = `${nodes.length} nodos conectados`;
-
-  document.querySelectorAll('.graph-filter-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.graphtype === activeGraphType);
-  });
-
-  if (!graphInstance) {
-    graphCanvas.innerHTML = '';
-    graphInstance = ForceGraph()(graphCanvas)
-      .graphData({ nodes, links })
-      .nodeId('id')
-      .nodeVal('val')
-      .d3AlphaDecay(0.03)
-      .d3VelocityDecay(0.6)
-      .cooldownTicks(80)
-      .backgroundColor('rgba(0, 0, 0, 0)')
-      .linkColor(() => {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        return isLight ? 'rgba(15, 23, 42, 0.45)' : 'rgba(255, 255, 255, 0.40)';
-      })
-      .linkWidth(1.4)
-      .onNodeClick(node => {
-        if (node.id.startsWith('work-')) {
-          openDetailModal(node.id.replace('work-', ''));
-        }
-      })
-      .nodeCanvasObject((node, ctx, globalScale) => {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        const label = node.name || '';
-        const radius = node.val || 4;
-
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
-        ctx.fillStyle = getNodeColor(node);
-        ctx.fill();
-
-        ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.30)' : 'rgba(255, 255, 255, 0.60)';
-        ctx.lineWidth = 1.2 / globalScale;
-        ctx.stroke();
-
-        if (globalScale > 0.85) {
-          const fontSize = Math.max(10 / globalScale, 2.5);
-          ctx.font = `600 ${fontSize}px 'Inter', system-ui, -apple-system, sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-
-          const textY = node.y + radius + (2.5 / globalScale);
-
-          ctx.lineJoin = 'round';
-          ctx.lineCap = 'round';
-          ctx.strokeStyle = isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.95)';
-          ctx.lineWidth = 1.2 / globalScale;
-          ctx.strokeText(label, node.x, textY);
-
-          ctx.fillStyle = isLight ? '#0f172a' : '#ffffff';
-          ctx.fillText(label, node.x, textY);
-        }
-      })
-      .nodeCanvasObjectMode(() => 'replace')
-      .nodePointerAreaPaint((node, color, ctx) => {
-        const radius = (node.val || 4) + 3;
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
-        ctx.fill();
-      });
-
-    graphInstance.d3Force('charge').strength(-180);
-    graphInstance.d3Force('link').distance(45);
-  } else {
-    graphInstance
-      .graphData({ nodes, links })
-      .backgroundColor('rgba(0, 0, 0, 0)');
-    
-    setTimeout(() => {
-      if (graphCanvas && graphInstance) {
-        graphInstance.width(graphCanvas.clientWidth);
-        graphInstance.height(graphCanvas.clientHeight);
-      }
-    }, 150);
-  }
-}
 
 // ----------------------------------------------------------------------------
 // 8. INICIALIZACIÓN DE EVENTOS DE VISTAS CON RED DE SEGURIDAD
@@ -1279,15 +1135,6 @@ export function initViewsEvents() {
       btn.classList.add('active');
       state.calTypeFilter = btn.dataset.caltype;
       renderCalendar();
-    });
-  });
-
-  document.querySelectorAll('.graph-filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.graph-filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.graphTypeFilter = btn.dataset.graphtype;
-      initOrUpdateGraph();
     });
   });
 }

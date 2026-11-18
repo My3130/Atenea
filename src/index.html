@@ -14,6 +14,16 @@
   <script src="./assets/vendor/leaflet.js"></script>
   <script src="./assets/vendor/globe.gl.min.js"></script>
 
+  <!-- Three.js ES Modules (Local Offline) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./assets/vendor/three/three.module.js",
+      "three/addons/": "./assets/vendor/three/addons/"
+    }
+  }
+  </script>
+
   <!-- Grafo de Conexiones (Local Offline) -->
   <script src="./assets/vendor/force-graph.min.js"></script>
 
@@ -209,22 +219,32 @@
         <div class="timeline-stream hidden" id="timeline-stream"></div>
       </section>
 
-      <!-- VISTA 3: GRAFO DE CONEXIONES CULTURALES CON FILTRO DE MEDIOS -->
+      <!-- VISTA 3: GRAFO DE CONEXIONES CULTURALES Y ÁRBOL CELESTIAL -->
       <section class="graph-view-container hidden" id="graph-view">
-        <div class="graph-toolbar">
+        <div class="graph-toolbar" id="graph-toolbar">
           <div class="graph-title-info">
-            <h3><i data-lucide="share-2"></i> Grafo de Conexiones Culturales</h3>
+            <div class="graph-mode-toggle">
+              <button id="btn-graph-mode-2d" class="proj-toggle-btn active"><i data-lucide="share-2"></i> Red 2D</button>
+              <button id="btn-graph-mode-3d" class="proj-toggle-btn"><i data-lucide="sparkles"></i> Árbol Cósmico</button>
+            </div>
             <span id="graph-stats-text" class="map-stats-pill">0 nodos enlazados</span>
           </div>
 
-          <div class="graph-type-filters">
-            <button class="graph-filter-btn active" data-graphtype="all">Todos</button>
-            <button class="graph-filter-btn" data-graphtype="book">Libros</button>
-            <button class="graph-filter-btn" data-graphtype="movie">Cine</button>
-            <button class="graph-filter-btn" data-graphtype="music">Música</button>
+          <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+            <div class="graph-type-filters">
+              <button class="graph-filter-btn active" data-graphtype="all">Todos</button>
+              <button class="graph-filter-btn" data-graphtype="book">Libros</button>
+              <button class="graph-filter-btn" data-graphtype="movie">Cine</button>
+              <button class="graph-filter-btn" data-graphtype="music">Música</button>
+            </div>
+            <button type="button" id="btn-toggle-graph-toolbar" class="btn-toggle-graph-toolbar" title="Colapsar / Expandir barra">
+              <i data-lucide="chevron-up"></i>
+            </button>
           </div>
         </div>
+
         <div id="cultural-graph-canvas" class="cultural-graph-canvas"></div>
+        <div id="cultural-tree-canvas" class="cultural-tree-canvas hidden" style="position:relative; width:100%; height:100%; overflow:hidden;"></div>
       </section>
 
       <!-- VISTA 4: ATLAS CULTURAL -->

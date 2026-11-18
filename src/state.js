@@ -35,6 +35,8 @@ export const state = {
   currentActiveView: 'library',
   timelineSubMode: 'calendar',
   mapProjectionMode: '3d',
+  graphMode: '2d',
+  isTree3DEnabled: false, // Interruptor consciente de motor WebGL (apagado por defecto)
   mapTypeFilter: 'all',
   mapEpochFilter: 'all',
   calYear: new Date().getFullYear(),
