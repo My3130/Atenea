@@ -1,7 +1,7 @@
 // ============================================================================
 // STATE.JS - Estado Global, Normalización Canónica Universal,
 //             Persistencia Híbrida en IndexedDB (AteneaVaultDB) y Gestión de Caché
-//             + Formateo Inteligente de Géneros, Temas Literarios y Estilos
+//             + Compresión Automática de Portadas (420px WebP / Ahorro GPU RAM)
 //             + Sistema de Render Diferido Anti-Congelamiento (Drag & Drop Guard)
 // ============================================================================
 
@@ -224,38 +224,121 @@ export function saveLibrary(onSavedCallback) {
 }
 
 // ============================================================================
-// 2. MOTOR DE CACHÉ Y PURGA DE PORTADAS (OFFLINE PERMANENTE & ZERO GHOSTS)
+// 2. MOTOR DE CACHÉ Y PURGA DE PORTADAS (OFFLINE PERMANENTE & COMPRESIÓN 420PX)
 // ============================================================================
 export const blobUrlCache = new Map();
 
 /**
- * Descarga una imagen remota y la almacena localmente en IndexedDB.
+ * Comprime y redimensiona un Blob de portada a un máximo de 420px de ancho en WebP
+ * para reducir drásticamente la memoria gráfica (GpuImageDecodeCache) en WebView2.
+ */
+async function compressCoverBlob(rawBlob, maxWidth = 420, quality = 0.85) {
+  if (!(rawBlob instanceof Blob)) return rawBlob;
+  if (rawBlob.size <= 110 * 1024) return rawBlob;
+
+  try {
+    const bitmap = await createImageBitmap(rawBlob);
+    if (bitmap.width <= maxWidth && rawBlob.size <= 140 * 1024) {
+      bitmap.close();
+      return rawBlob;
+    }
+
+    const scale = Math.min(1, maxWidth / bitmap.width);
+    const targetW = Math.max(1, Math.round(bitmap.width * scale));
+    const targetH = Math.max(1, Math.round(bitmap.height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, targetW, targetH);
+    bitmap.close();
+
+    const compressed = await new Promise((resolve) => {
+      canvas.toBlob((res) => resolve(res), 'image/webp', quality);
+    });
+
+    return (compressed && compressed.size < rawBlob.size) ? compressed : rawBlob;
+  } catch (e) {
+    return rawBlob;
+  }
+}
+
+/**
+ * Descarga una imagen remota, la comprime a 420px WebP y la almacena en IndexedDB.
  * @param {string} itemId - UUID de la obra.
  * @param {string} url - URL remota de la imagen (HTTP/HTTPS).
  */
 export async function cacheCoverLocally(itemId, url) {
   if (!itemId || !url || !url.startsWith('http')) return;
 
-  // Si ya la tenemos en caché RAM, no la volvemos a descargar
   if (blobUrlCache.has(itemId)) return;
 
   try {
     const res = await fetch(url, { mode: 'cors' });
     if (!res.ok) return;
 
-    const blob = await res.blob();
+    const rawBlob = await res.blob();
+    const optimizedBlob = await compressCoverBlob(rawBlob, 420, 0.85);
     const db = await openVaultDB();
 
     await new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_COVERS, 'readwrite');
       const store = tx.objectStore(STORE_COVERS);
-      const req = store.put(blob, itemId);
+      const req = store.put(optimizedBlob, itemId);
       req.onsuccess = () => resolve(true);
       req.onerror = () => reject(req.error);
     });
 
-    const blobUrl = URL.createObjectURL(blob);
+    const blobUrl = URL.createObjectURL(optimizedBlob);
     blobUrlCache.set(itemId, blobUrl);
+  } catch (e) {}
+}
+
+/**
+ * Optimiza en segundo plano las portadas pesadas ya almacenadas en IndexedDB
+ * sin bloquear el hilo principal ni romper las imágenes visibles en la sesión actual.
+ */
+export async function optimizeOversizedCoversInBackground() {
+  if (localStorage.getItem('atenea_covers_optimized_v1') === 'true') return;
+
+  try {
+    const db = await openVaultDB();
+    const oversizedKeys = [];
+
+    await new Promise((resolve) => {
+      const tx = db.transaction(STORE_COVERS, 'readonly');
+      const store = tx.objectStore(STORE_COVERS);
+      const req = store.openCursor();
+      req.onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          if (cursor.value instanceof Blob && cursor.value.size > 120 * 1024) {
+            oversizedKeys.push({ key: cursor.key, blob: cursor.value });
+          }
+          cursor.continue();
+        } else {
+          resolve(true);
+        }
+      };
+      req.onerror = () => resolve(true);
+    });
+
+    for (const entry of oversizedKeys) {
+      const compressed = await compressCoverBlob(entry.blob, 420, 0.85);
+      if (compressed !== entry.blob && compressed.size < entry.blob.size) {
+        await new Promise((resolve) => {
+          const tx = db.transaction(STORE_COVERS, 'readwrite');
+          const store = tx.objectStore(STORE_COVERS);
+          const req = store.put(compressed, entry.key);
+          req.onsuccess = () => resolve(true);
+          req.onerror = () => resolve(false);
+        });
+      }
+      await new Promise(r => setTimeout(r, 30));
+    }
+
+    localStorage.setItem('atenea_covers_optimized_v1', 'true');
   } catch (e) {}
 }
 

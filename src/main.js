@@ -20,7 +20,8 @@ import {
   isItemDuplicate, 
   sanitizeLibraryData, 
   initAteneaVault, 
-  cacheCoverLocally 
+  cacheCoverLocally,
+  optimizeOversizedCoversInBackground
 } from './state.js';
 
 import { searchPublicMetadata, callGeminiChat, fetchAutomaticCover } from './api.js';
@@ -483,23 +484,38 @@ function initBackgroundEngine() {
   document.addEventListener('visibilitychange', () => {
     const videoEl = document.getElementById('bg-video');
     if (!videoEl) return;
+
     if (document.hidden) {
-      videoEl.pause();
-    } else if (state.activeBgTheme !== 'none' && state.activeBgTheme !== 'custom') {
-      videoEl.play().catch(() => {});
+      // Si se minimiza la ventana, liberar búfer del decodificador MP4 en GPU
+      const currentSrc = videoEl.getAttribute('src');
+      if (currentSrc) {
+        videoEl.dataset.minimizedSrc = currentSrc;
+        videoEl.pause();
+        videoEl.removeAttribute('src');
+        videoEl.load();
+      }
+    } else {
+      // Restaurar solo si no está suspendido por el Árbol 3D
+      const savedSrc = videoEl.dataset.minimizedSrc;
+      if (savedSrc && !videoEl.dataset.pausedSrc && state.activeBgTheme !== 'none' && state.activeBgTheme !== 'custom') {
+        videoEl.setAttribute('src', savedSrc);
+        delete videoEl.dataset.minimizedSrc;
+        videoEl.load();
+        videoEl.play().catch(() => {});
+      }
     }
   });
 
   window.addEventListener('blur', () => {
     const videoEl = document.getElementById('bg-video');
-    if (videoEl && state.activeBgTheme !== 'none' && state.activeBgTheme !== 'custom') {
+    if (videoEl && videoEl.getAttribute('src') && state.activeBgTheme !== 'none' && state.activeBgTheme !== 'custom') {
       videoEl.pause();
     }
   });
 
   window.addEventListener('focus', () => {
     const videoEl = document.getElementById('bg-video');
-    if (videoEl && state.activeBgTheme !== 'none' && state.activeBgTheme !== 'custom') {
+    if (videoEl && videoEl.getAttribute('src') && !videoEl.dataset.pausedSrc && state.activeBgTheme !== 'none' && state.activeBgTheme !== 'custom') {
       videoEl.play().catch(() => {});
     }
   });
@@ -757,10 +773,12 @@ initAteneaVault(() => {
   if ('requestIdleCallback' in window) {
     requestIdleCallback(() => {
       sanitizeLibraryData();
+      optimizeOversizedCoversInBackground();
     });
   } else {
     setTimeout(() => {
       sanitizeLibraryData();
-    }, 1000);
+      optimizeOversizedCoversInBackground();
+    }, 1500);
   }
 });

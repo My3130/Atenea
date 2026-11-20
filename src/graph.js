@@ -42,6 +42,22 @@ function setBackgroundVideoPaused(paused) {
   }
 }
 
+function destroy2DGraph() {
+  if (graphInstance) {
+    try {
+      if (typeof graphInstance.pauseAnimation === 'function') {
+        graphInstance.pauseAnimation();
+      }
+      if (typeof graphInstance._destructor === 'function') {
+        graphInstance._destructor();
+      }
+    } catch (e) {}
+    graphInstance = null;
+  }
+  const graphCanvas = document.getElementById('cultural-graph-canvas');
+  if (graphCanvas) graphCanvas.innerHTML = '';
+}
+
 export async function initOrUpdateGraph() {
   initGraphEvents();
 
@@ -70,9 +86,7 @@ export async function initOrUpdateGraph() {
     graphCanvas2D?.classList.add('hidden');
     treeCanvas3D?.classList.remove('hidden');
 
-    if (graphInstance && typeof graphInstance.pauseAnimation === 'function') {
-      graphInstance.pauseAnimation();
-    }
+    destroy2DGraph();
 
     if (graphStatsText) {
       graphStatsText.textContent = state.isTree3DEnabled
@@ -119,7 +133,7 @@ function renderHardwareWarningCard(container) {
         Esta perspectiva inmersiva utiliza aceleración por hardware (WebGL) para renderizar la constelación tridimensional.
       </p>
       <p style="font-size:12px; color:#d9b870; max-width:440px; line-height:1.5; margin-bottom:22px; background:rgba(217, 184, 112, 0.08); border:1px solid rgba(217, 184, 112, 0.25); padding:8px 14px; border-radius:8px;">
-        ⚡ ⚡ Tendrá un consumo moderado de RAM y memoria gráfica (GPU) adicional mientras esté activo. Puedes apagarlo en cualquier momento para regresar al reposo total.
+        ⚡ Tendrá un consumo moderado de RAM y memoria gráfica (GPU) adicional mientras esté activo. Puedes apagarlo en cualquier momento para regresar al reposo total.
       </p>
       <button type="button" id="btn-enable-tree-3d" class="btn-primary" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; padding:11px 22px; font-weight:600; border-radius:8px;">
         <i data-lucide="power"></i> Encender Árbol Cósmico
@@ -139,10 +153,7 @@ function render2DForceGraph(graphCanvas, filteredItems, graphStatsText) {
   if (!graphCanvas) return;
 
   if (filteredItems.length === 0) {
-    if (graphInstance && typeof graphInstance.pauseAnimation === 'function') {
-      graphInstance.pauseAnimation();
-      graphInstance = null;
-    }
+    destroy2DGraph();
     graphCanvas.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:50px;">No hay obras disponibles para esta vista del grafo.</div>`;
     if (graphStatsText) graphStatsText.textContent = `0 nodos conectados`;
     return;
@@ -269,9 +280,7 @@ export function pauseGraph() {
   if (isTree3DMounted()) {
     destroyTree3D();
   }
-  if (graphInstance && typeof graphInstance.pauseAnimation === 'function') {
-    graphInstance.pauseAnimation();
-  }
+  destroy2DGraph();
 }
 
 export function resumeGraph() {
@@ -302,6 +311,7 @@ export function initGraphEvents() {
       initOrUpdateGraph();
     });
   });
+
   document.getElementById('btn-toggle-graph-toolbar')?.addEventListener('click', () => {
     const toolbar = document.getElementById('graph-toolbar');
     if (toolbar) {

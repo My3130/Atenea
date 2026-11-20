@@ -195,7 +195,7 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   5. UTILIDADES GLOBALES Y DRAG & DROP PARA WEBVIEW2
+   5. UTILIDADES GLOBALES, DRAG & DROP Y POLÍTICA DE RENDIMIENTO GPU
    ---------------------------------------------------------------------------- */
 .hidden { 
   display: none !important; 
@@ -219,4 +219,10 @@ body {
 
 .custom-collection-row .btn-delete-collection {
   pointer-events: auto;
+}
+
+/* Desactivación global de blur por composición para minimizar consumo en Proceso GPU */
+* {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }

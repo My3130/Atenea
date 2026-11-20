@@ -647,8 +647,13 @@
 }
 
 .calendar-day-cell:hover { 
-  border-color: var(--accent); 
-  background-color: rgba(124, 58, 237, 0.15); 
+  border-color: rgba(255, 255, 255, 0.22); 
+  background-color: var(--bg-main); /* Sin sombreado de color al pasar el mouse */
+}
+
+[data-theme="light"] .calendar-day-cell:hover {
+  border-color: rgba(0, 0, 0, 0.22);
+  background-color: var(--bg-main);
 }
 
 .calendar-day-cell.other-month { 
@@ -656,9 +661,15 @@
   cursor: default; 
 }
 
+/* Sombreado monocromo únicamente para el día actual */
 .calendar-day-cell.today { 
-  border-color: var(--accent); 
-  background-color: rgba(124, 58, 237, 0.18); 
+  border-color: rgba(255, 255, 255, 0.42); 
+  background-color: rgba(255, 255, 255, 0.08); 
+}
+
+[data-theme="light"] .calendar-day-cell.today {
+  border-color: rgba(0, 0, 0, 0.35);
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 .cal-day-num { 
@@ -668,7 +679,8 @@
 }
 
 .calendar-day-cell.today .cal-day-num { 
-  color: var(--accent); 
+  color: var(--text-main); 
+  font-weight: 800;
 }
 
 .cal-day-items { 
@@ -900,7 +912,7 @@
 .graph-view-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 32px);
+  height: calc(100vh - 38px);
   width: 100%;
   padding: 0;
   gap: 0;
@@ -1025,44 +1037,11 @@
   contain: strict;
 }
 
-/* MODO INMERSIVO: Barra superior retráctil al pasar el ratón por arriba */
+/* MODO INMERSIVO: Contenedor a pantalla completa (la barra retráctil ya es global en layout.css) */
 .main-content.graph-immersive {
   position: relative;
   padding: 0 !important;
-}
-
-.main-content.graph-immersive .top-nav-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: var(--bg-card);
-  backdrop-filter: blur(18px);
-  border-bottom: 1px solid var(--border-color);
-  padding: 10px 20px;
-  transform: translateY(calc(-100% + 14px));
-  opacity: 0;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
-}
-
-.main-content.graph-immersive .top-nav-bar::after {
-  content: "";
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 48px;
-  height: 3px;
-  border-radius: 3px;
-  background: rgba(140, 155, 165, 0.45);
-  pointer-events: none;
-}
-
-.main-content.graph-immersive .top-nav-bar:hover,
-.main-content.graph-immersive .top-nav-bar:focus-within {
-  transform: translateY(0);
-  opacity: 1;
+  overflow: hidden;
 }
 
 /* ============================================================================
@@ -1071,7 +1050,7 @@
 .map-view-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 32px);
+  height: calc(100vh - 38px);
   width: 100%;
   padding: 14px 20px 18px 20px;
   gap: 10px;

@@ -1,8 +1,7 @@
 // ============================================================================
-// ATLAS.JS - Globo 3D WebGL y Mapa 2D Geopolítico Limpio (Zero Watermarks)
-//          + Carga Local Offline (src/assets/world.geojson)
-//          + Suspensión Automática de GPU por MutationObserver y Delegación
-//          + Detección Universal de Portadas (HTTP, Blob, Data-URI y Local)
+// ATLAS.JS - Globo 3D WebGL y Mapa 2D Minimalista (Solo Pines, Sin Polígonos)
+//          + Destrucción Profunda WebGL (Scene Traverse + forceContextLoss)
+//          + Suspensión de Video Ambiental & Modo Reposo 0.0% GPU en Globo 3D
 // ============================================================================
 
 import { 
@@ -20,20 +19,13 @@ import { escapeHtml, openDayInspectorModal, openDetailModal } from './modals.js'
 
 let culturalMap = null;
 let mapMarkersGroup = null;
-let geoJsonLayer = null; // Capa vectorial estática independiente para polígonos 2D
 let globeInstance = null;
-let cachedGeoJsonCountries = null;
+let globeSleepTimer = null;
 let isObserverAttached = false;
-let atlasEventsInitialized = false; // Guarda contra acumulación de eventos
+let atlasEventsInitialized = false;
 
-const GEOJSON_CACHE_KEY = 'atenea_cached_world_geojson';
 const mapStatsText = document.getElementById('map-stats-text');
 
-/**
- * Valida si la URL de la portada es válida (HTTP, HTTPS, Blob URL, Data-URI o ruta local).
- * @param {string|null|undefined} url 
- * @returns {boolean}
- */
 function isValidCover(url) {
   if (!url || typeof url !== 'string') return false;
   const clean = url.trim();
@@ -48,9 +40,137 @@ function isValidCover(url) {
   );
 }
 
+function setBackgroundVideoPausedForAtlas(paused) {
+  const bgVideo = document.getElementById('bg-video');
+  if (!bgVideo) return;
+
+  if (paused) {
+    const currentSrc = bgVideo.getAttribute('src');
+    if (currentSrc) {
+      bgVideo.dataset.pausedSrc = currentSrc;
+      bgVideo.pause();
+      bgVideo.removeAttribute('src');
+      bgVideo.load();
+    }
+  } else {
+    const inTree3D = state.currentActiveView === 'graph' && state.graphMode === '3d' && state.isTree3DEnabled;
+    const savedSrc = bgVideo.dataset.pausedSrc;
+    if (savedSrc && !inTree3D && state.activeBgTheme !== 'none' && state.activeBgTheme !== 'custom') {
+      bgVideo.setAttribute('src', savedSrc);
+      delete bgVideo.dataset.pausedSrc;
+      bgVideo.load();
+      bgVideo.play().catch(() => {});
+    }
+  }
+}
+
 // ----------------------------------------------------------------------------
-// 0. GOBERNADOR DE GPU: SUSPENSIÓN REACTIVA DEL MOTOR THREE.JS
+// 0. DESTRUCCIÓN PROFUNDA Y GOBERNADOR 0.0% GPU DEL GLOBO
 // ----------------------------------------------------------------------------
+function disposeThreeNode(obj) {
+  if (!obj) return;
+  if (obj.geometry && typeof obj.geometry.dispose === 'function') {
+    obj.geometry.dispose();
+  }
+  if (obj.material) {
+    const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+    mats.forEach(mat => {
+      if (!mat) return;
+      for (const key of Object.keys(mat)) {
+        const val = mat[key];
+        if (val && typeof val.dispose === 'function') {
+          val.dispose();
+        }
+      }
+      if (typeof mat.dispose === 'function') mat.dispose();
+    });
+  }
+}
+
+function scheduleGlobeSleep(delayMs = 1500) {
+  clearTimeout(globeSleepTimer);
+  globeSleepTimer = setTimeout(() => {
+    if (globeInstance && typeof globeInstance.pauseAnimation === 'function') {
+      globeInstance.pauseAnimation();
+    }
+  }, delayMs);
+}
+
+function wakeGlobeBriefly() {
+  if (globeInstance && typeof globeInstance.resumeAnimation === 'function') {
+    globeInstance.resumeAnimation();
+    scheduleGlobeSleep(1500);
+  }
+}
+
+function destroy3DGlobe() {
+  clearTimeout(globeSleepTimer);
+  globeSleepTimer = null;
+
+  const globeCanvas = document.getElementById('cultural-globe-canvas');
+  if (globeCanvas && globeCanvas.__atlasCleaners) {
+    globeCanvas.__atlasCleaners();
+    globeCanvas.__atlasCleaners = null;
+  }
+
+  if (globeInstance) {
+    try {
+      if (typeof globeInstance.pauseAnimation === 'function') {
+        globeInstance.pauseAnimation();
+      }
+
+      if (typeof globeInstance.controls === 'function') {
+        const ctrl = globeInstance.controls();
+        if (ctrl) {
+          ctrl.autoRotate = false;
+          if (typeof ctrl.dispose === 'function') ctrl.dispose();
+        }
+      }
+
+      if (typeof globeInstance.scene === 'function') {
+        const sc = globeInstance.scene();
+        if (sc) {
+          if (sc.background && typeof sc.background.dispose === 'function') {
+            sc.background.dispose();
+          }
+          sc.traverse(disposeThreeNode);
+        }
+      }
+
+      if (typeof globeInstance._destructor === 'function') {
+        globeInstance._destructor();
+      }
+
+      if (typeof globeInstance.renderer === 'function') {
+        const r = globeInstance.renderer();
+        if (r) {
+          r.dispose();
+          r.forceContextLoss();
+        }
+      }
+    } catch (e) {}
+    globeInstance = null;
+  }
+
+  if (globeCanvas) globeCanvas.innerHTML = '';
+}
+
+function destroy2DMap() {
+  if (culturalMap) {
+    try {
+      culturalMap.remove();
+    } catch (e) {}
+    culturalMap = null;
+    mapMarkersGroup = null;
+  }
+}
+
+export function destroyAtlas() {
+  setBackgroundVideoPausedForAtlas(false);
+  destroy3DGlobe();
+  destroy2DMap();
+}
+
 function ensureAtlasVisibilityObserver() {
   if (isObserverAttached) return;
   const mapView = document.getElementById('map-view');
@@ -59,19 +179,22 @@ function ensureAtlasVisibilityObserver() {
   const observer = new MutationObserver(() => {
     const isHidden = mapView.classList.contains('hidden');
     if (isHidden) {
-      // Apagar inmediatamente el bucle requestAnimationFrame de Three.js
-      if (globeInstance && typeof globeInstance.pauseAnimation === 'function') {
-        globeInstance.pauseAnimation();
-      }
-    } else {
-      // Reanudar el motor 3D únicamente si está en proyección 3D
-      if (state.mapProjectionMode === '3d' && globeInstance && typeof globeInstance.resumeAnimation === 'function') {
-        globeInstance.resumeAnimation();
-      }
+      destroyAtlas();
     }
   });
 
   observer.observe(mapView, { attributes: true, attributeFilter: ['class'] });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!globeInstance) return;
+    if (document.hidden) {
+      clearTimeout(globeSleepTimer);
+      if (typeof globeInstance.pauseAnimation === 'function') globeInstance.pauseAnimation();
+    } else if (state.currentActiveView === 'map' && state.mapProjectionMode === '3d') {
+      wakeGlobeBriefly();
+    }
+  });
+
   isObserverAttached = true;
 }
 
@@ -80,10 +203,8 @@ function ensureAtlasVisibilityObserver() {
 // ----------------------------------------------------------------------------
 export function getCountryAggregatedData() {
   const filteredItems = library.filter(it => {
-    // A) Filtro por Disciplina (Libro, Cine, Música, Todos)
     if (state.mapTypeFilter !== 'all' && it.type !== state.mapTypeFilter) return false;
 
-    // B) Filtro Temporal por Épocas / Siglos
     if (state.mapEpochFilter && state.mapEpochFilter !== 'all') {
       const year = it.releaseYear;
       if (!year || isNaN(year)) return false;
@@ -139,10 +260,8 @@ export function initOrUpdateAtlas() {
     globeCanvas?.classList.remove('hidden');
     mapCanvas?.classList.add('hidden');
 
-    if (globeInstance) {
-      if (typeof globeInstance.resumeAnimation === 'function') globeInstance.resumeAnimation();
-      globeInstance.controls().autoRotate = true;
-    }
+    destroy2DMap();
+    setBackgroundVideoPausedForAtlas(true);
     init3DGlobe();
   } else {
     btnProj2D?.classList.add('active');
@@ -150,10 +269,8 @@ export function initOrUpdateAtlas() {
     mapCanvas?.classList.remove('hidden');
     globeCanvas?.classList.add('hidden');
 
-    if (globeInstance) {
-      globeInstance.controls().autoRotate = false;
-      if (typeof globeInstance.pauseAnimation === 'function') globeInstance.pauseAnimation();
-    }
+    destroy3DGlobe();
+    setBackgroundVideoPausedForAtlas(false);
     init2DMap();
   }
 }
@@ -175,7 +292,6 @@ export function initAtlasEvents() {
     initOrUpdateAtlas();
   });
 
-  // Filtro por Medio / Disciplina
   document.querySelectorAll('.map-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.map-filter-btn').forEach(b => b.classList.remove('active'));
@@ -185,7 +301,6 @@ export function initAtlasEvents() {
     });
   });
 
-  // Filtro Temporal por Épocas Históricas
   document.querySelectorAll('.map-epoch-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.map-epoch-btn').forEach(b => b.classList.remove('active'));
@@ -203,70 +318,13 @@ export function initAtlasEvents() {
 }
 
 // ----------------------------------------------------------------------------
-// 3. GLOBO 3D WEBGL (THREE.JS AISLADO Y CONFIGURACIÓN UNIFICADA DE POLÍGONOS)
+// 3. GLOBO 3D WEBGL OPTIMIZADO (SIN GIRO CONTINUO + 0.0% GPU EN REPOSO)
 // ----------------------------------------------------------------------------
-function applyGlobePolygons(globe, countryGroups) {
-  if (!globe || !cachedGeoJsonCountries?.features) return;
-
-  globe
-    .polygonsData(cachedGeoJsonCountries.features)
-    .polygonAltitude(0.006)
-    .polygonCapColor(feat => {
-      const rawName = feat.properties.NAME || feat.properties.ADMIN;
-      const canonicalGeoName = canonicalizeCountry(rawName);
-      return countryGroups[canonicalGeoName]
-        ? 'rgba(124, 58, 237, 0.38)'
-        : 'rgba(20, 20, 25, 0.05)';
-    })
-    .polygonSideColor(() => 'rgba(0, 0, 0, 0.15)')
-    .polygonStrokeColor(() => 'rgba(180, 180, 210, 0.45)')
-    .polygonLabel(({ properties: d }) => `<b>${escapeHtml(canonicalizeCountry(d.NAME || d.ADMIN))}</b>`);
+function openCountryDetail(d) {
+  openDayInspectorModal(d.country, d.items);
 }
 
-/**
- * Carga de datos vectoriales GeoJSON:
- * 1. Intenta cargar desde el archivo local offline en `src/assets/world.geojson`.
- * 2. Si no lo encuentra, usa la caché en memoria local (localStorage).
- * 3. Fallback de red como último recurso.
- */
-async function loadGeoJsonWithCache() {
-  if (cachedGeoJsonCountries) return cachedGeoJsonCountries;
-
-  // Intento 1: Carga desde archivo local estático (100% Offline)
-  try {
-    const localAssetRes = await fetch('./assets/world.geojson');
-    if (localAssetRes.ok) {
-      cachedGeoJsonCountries = await localAssetRes.json();
-      return cachedGeoJsonCountries;
-    }
-  } catch (e) {}
-
-  // Intento 2: Recuperar de la memoria local persistente
-  try {
-    const localData = localStorage.getItem(GEOJSON_CACHE_KEY);
-    if (localData) {
-      cachedGeoJsonCountries = JSON.parse(localData);
-      return cachedGeoJsonCountries;
-    }
-  } catch (e) {}
-
-  // Intento 3: Descargar de la red y guardar en caché local como fallback
-  try {
-    const res = await fetch('https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson');
-    if (res.ok) {
-      const data = await res.json();
-      cachedGeoJsonCountries = data;
-      try {
-        localStorage.setItem(GEOJSON_CACHE_KEY, JSON.stringify(data));
-      } catch (e) {}
-      return cachedGeoJsonCountries;
-    }
-  } catch (e) {}
-
-  return null;
-}
-
-async function init3DGlobe() {
+function init3DGlobe() {
   const countryGroups = getCountryAggregatedData();
   const globePoints = [];
 
@@ -292,14 +350,19 @@ async function init3DGlobe() {
     });
   }
 
-  await loadGeoJsonWithCache();
-
   if (!globeInstance) {
     const container = document.getElementById('cultural-globe-canvas');
     if (!container) return;
     container.innerHTML = '';
 
-    globeInstance = Globe()(container)
+    globeInstance = Globe({
+      rendererConfig: {
+        antialias: false,
+        alpha: true,
+        powerPreference: 'default'
+      },
+      animateIn: false
+    })(container)
       .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
       .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
       .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
@@ -325,20 +388,39 @@ async function init3DGlobe() {
       .labelSize(1.3)
       .labelDotRadius(0.35)
       .labelColor(() => '#ffffff')
-      .labelResolution(3)
+      .labelResolution(1.5)
       .labelAltitude(0.02)
-      .onLabelClick(d => openCountryDetail(d));
+      .onLabelClick(d => openCountryDetail(d))
+      .onGlobeReady(() => {
+        scheduleGlobeSleep(1200);
+      });
 
-    applyGlobePolygons(globeInstance, countryGroups);
-
-    globeInstance.controls().autoRotate = true;
-    globeInstance.controls().autoRotateSpeed = 0.4;
+    globeInstance.controls().autoRotate = false;
+    globeInstance.controls().enableDamping = false;
     globeInstance.controls().enableZoom = true;
     globeInstance.pointOfView({ lat: 25, lng: 10, altitude: 2.2 });
+
+    if (typeof globeInstance.renderer === 'function') {
+      const r = globeInstance.renderer();
+      if (r) r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.15));
+    }
+
+    const onInteract = () => wakeGlobeBriefly();
+    container.addEventListener('pointerdown', onInteract);
+    container.addEventListener('pointermove', onInteract);
+    container.addEventListener('wheel', onInteract, { passive: true });
+
+    container.__atlasCleaners = () => {
+      container.removeEventListener('pointerdown', onInteract);
+      container.removeEventListener('pointermove', onInteract);
+      container.removeEventListener('wheel', onInteract);
+    };
+
+    scheduleGlobeSleep(2500);
   } else {
     globeInstance.pointsData(globePoints);
     globeInstance.labelsData(globePoints);
-    applyGlobePolygons(globeInstance, countryGroups);
+    wakeGlobeBriefly();
 
     setTimeout(() => {
       const container = document.getElementById('cultural-globe-canvas');
@@ -350,12 +432,8 @@ async function init3DGlobe() {
   }
 }
 
-function openCountryDetail(d) {
-  openDayInspectorModal(d.country, d.items);
-}
-
 // ----------------------------------------------------------------------------
-// 4. MAPA 2D GEOPOLÍTICO (LEAFLET OPTIMIZADO Y BLINDADO ANTI-XSS)
+// 4. MAPA 2D GEOPOLÍTICO MINIMALISTA (LEAFLET - SOLO PINES, SIN POLÍGONOS)
 // ----------------------------------------------------------------------------
 function init2DMap() {
   if (!culturalMap) {
@@ -403,42 +481,11 @@ function init2DMap() {
     });
   }
 
-  setTimeout(async () => {
+  setTimeout(() => {
+    if (!culturalMap) return;
     culturalMap.invalidateSize();
-    await loadGeoJsonWithCache();
-    const countryGroups = getCountryAggregatedData();
-    updateGeoJsonPolygons(countryGroups);
     render2DMapMarkers();
   }, 150);
-}
-
-function updateGeoJsonPolygons(countryGroups) {
-  if (!culturalMap) return;
-
-  if (geoJsonLayer) {
-    culturalMap.removeLayer(geoJsonLayer);
-    geoJsonLayer = null;
-  }
-
-  if (cachedGeoJsonCountries) {
-    geoJsonLayer = L.geoJSON(cachedGeoJsonCountries, {
-      style: function (feature) {
-        const rawName = feature.properties.NAME || feature.properties.ADMIN;
-        const canonicalGeoName = canonicalizeCountry(rawName);
-        const isExplored = Boolean(countryGroups[canonicalGeoName]);
-        return {
-          color: isExplored ? '#7c3aed' : '#3a3a48',
-          weight: isExplored ? 1.8 : 0.8,
-          fillColor: isExplored ? '#7c3aed' : '#141418',
-          fillOpacity: isExplored ? 0.35 : 0.04
-        };
-      }
-    }).addTo(culturalMap);
-
-    if (geoJsonLayer.bringToBack) {
-      geoJsonLayer.bringToBack();
-    }
-  }
 }
 
 function render2DMapMarkers() {
@@ -519,7 +566,9 @@ export function invalidateAtlasSizes() {
   if (mapView && mapView.classList.contains('hidden')) return;
 
   if (culturalMap) {
-    setTimeout(() => culturalMap.invalidateSize(), 150);
+    setTimeout(() => {
+      if (culturalMap) culturalMap.invalidateSize();
+    }, 150);
   }
   if (globeInstance) {
     setTimeout(() => {

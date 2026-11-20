@@ -33,7 +33,7 @@ import {
   openDayInspectorModal 
 } from './modals.js';
 
-import { initOrUpdateAtlas } from './atlas.js';
+import { initOrUpdateAtlas, destroyAtlas } from './atlas.js';
 import { initOrUpdateGraph, pauseGraph } from './graph.js';
 
 let draggedItemId = null;
@@ -173,6 +173,9 @@ export function renderActiveView() {
   if (state.currentActiveView !== 'graph') {
     pauseGraph();
   }
+  if (state.currentActiveView !== 'map') {
+    destroyAtlas();
+  }
 
   const mediaContainer = document.getElementById('media-container');
   const timelineView = document.getElementById('timeline-view');
@@ -184,6 +187,19 @@ export function renderActiveView() {
   const mainContent = document.querySelector('.main-content');
   const topNavBar = document.querySelector('.top-nav-bar');
   const subHeader = document.querySelector('.sub-header');
+
+  // 2. Vaciar el DOM de imágenes de vistas inactivas para que WebView2 suelte bitmaps en GPU
+  if (state.currentActiveView !== 'library' && mediaContainer) {
+    cleanupCollectionObserver();
+    mediaContainer.innerHTML = '';
+    document.getElementById('floating-remove-dropzone')?.remove();
+  }
+  if (state.currentActiveView !== 'timeline') {
+    const calGrid = document.getElementById('calendar-grid-days');
+    const tlStream = document.getElementById('timeline-stream');
+    if (calGrid) calGrid.innerHTML = '';
+    if (tlStream) tlStream.innerHTML = '';
+  }
 
   // Asegurar que la barra superior nunca quede bloqueada permanentemente
   topNavBar?.classList.remove('hidden');
