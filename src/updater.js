@@ -46,7 +46,7 @@ function getOrCreateUpdaterModal() {
           </div>
           <div>
             <h3 class="updater-title" style="margin:0; font-size:1.15rem; font-weight:600;">Nueva versión disponible</h3>
-            <p class="updater-version-tag" id="updater-version-text" style="margin:2px 0 0 0; font-size:0.8rem; color:#a78bfa; font-weight:500;">Atenea v0.0.0</p>
+            <p class="updater-version-tag" id="updater-version-text" style="margin:2px 0 0 0; font-size:0.8rem; color:var(--accent); font-weight:500;">Atenea v0.0.0</p>
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@ function getOrCreateUpdaterModal() {
         </div>
 
         <!-- Enlace directo a GitHub -->
-        <a href="#" id="updater-github-link" target="_blank" style="display:inline-block; margin-top:4px; font-size:0.75rem; color:#a78bfa; text-decoration:none; font-weight:500;">
+        <a href="#" id="updater-github-link" target="_blank" style="display:inline-block; margin-top:4px; font-size:0.75rem; color:var(--accent); text-decoration:none; font-weight:500;">
           Ver detalles completos en GitHub →
         </a>
 
@@ -68,7 +68,7 @@ function getOrCreateUpdaterModal() {
             <span id="updater-progress-percent">0%</span>
           </div>
           <div class="updater-progress-track" style="width:100%; height:7px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
-            <div class="updater-progress-bar" id="updater-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #7c3aed, #a855f7); border-radius:999px; transition:width 0.2s ease;"></div>
+            <div class="updater-progress-bar" id="updater-progress-bar" style="width:0%; height:100%; background:var(--accent); border-radius:999px; transition:width 0.2s ease;"></div>
           </div>
         </div>
       </div>

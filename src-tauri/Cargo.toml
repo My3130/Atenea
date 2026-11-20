@@ -1,6 +1,6 @@
 [package]
 name = "biblioteca-atenea"
-version = "0.2.9"
+version = "0.3.0"
 description = "Tu biblioteca personal, local-first, para Literatura, Cine y Música."
 authors = ["Mediocre Memory"]
 edition = "2021"

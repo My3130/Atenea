@@ -46,7 +46,7 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius);
-  background: rgba(124, 58, 237, 0.15);
+  background: var(--accent-subtle);
   border: 1px solid var(--accent);
   display: flex;
   align-items: center;
@@ -87,7 +87,7 @@
 
 .btn-copy-prompt-action:hover {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   border-color: var(--accent);
 }
 

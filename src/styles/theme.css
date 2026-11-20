@@ -15,8 +15,11 @@
   --border-focus: rgba(255, 255, 255, 0.22);
   --text-main: #ebebeb;
   --text-muted: #a0a0ab;
-  --accent: #7c3aed;
-  --accent-hover: #6d28d9;
+  --accent: #e4e4e7;
+  --accent-hover: #ffffff;
+  --accent-fg: #09090b;
+  --accent-subtle: rgba(255, 255, 255, 0.10);
+  --accent-subtle-hover: rgba(255, 255, 255, 0.16);
   --radius: 8px;
 
   --status-todo: #ef4444;
@@ -43,8 +46,11 @@
   --border-focus: rgba(0, 0, 0, 0.20);
   --text-main: #18181b;
   --text-muted: #52525b;
-  --accent: #7c3aed;
-  --accent-hover: #6d28d9;
+  --accent: #18181b;
+  --accent-hover: #27272a;
+  --accent-fg: #fafafa;
+  --accent-subtle: rgba(0, 0, 0, 0.06);
+  --accent-subtle-hover: rgba(0, 0, 0, 0.12);
   --wishlist-gold: #b45309;
 
   --bg-overlay-tint: rgba(244, 244, 246, 0.30);
@@ -225,4 +231,23 @@ body {
 * {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* ----------------------------------------------------------------------------
+   6. GARANTÍA DE CONTRASTE Y REGLA ANTI-TEXTO-INVISIBLE (MONOCROMO)
+   ---------------------------------------------------------------------------- */
+.btn-primary .lucide,
+.btn-primary-add .lucide,
+.btn-quick-submit .lucide,
+#chat-send-btn .lucide,
+.btn-export-action .lucide,
+.view-toggle-btn.active .lucide,
+.filter-tabs .filter-btn.active .lucide,
+.mode-tab-btn.active .lucide,
+.detail-subtab-btn.active .lucide,
+.settings-subtab-btn.active .lucide,
+.ambient-active-badge .lucide,
+.quick-radio:has(input:checked) .lucide {
+  color: var(--accent-fg);
+  stroke: currentColor;
 }

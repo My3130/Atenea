@@ -250,7 +250,7 @@
 
 .btn-mini-add-collection:hover {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   border-color: var(--accent);
 }
 
@@ -344,16 +344,16 @@
 }
 
 .custom-collection-row.active {
-  background-color: rgba(124, 58, 237, 0.20);
-  color: var(--accent);
+  background-color: var(--accent-subtle);
+  color: var(--text-main);
   border-color: var(--accent);
   font-weight: 600;
 }
 
 .custom-collection-row.drag-over {
-  background-color: rgba(124, 58, 237, 0.35) !important;
+  background-color: var(--accent-subtle-hover) !important;
   border: 1px dashed var(--accent) !important;
-  color: #fff !important;
+  color: var(--text-main) !important;
   transform: scale(1.02);
 }
 
@@ -399,7 +399,7 @@
 
 .custom-collection-row.active .collection-count-pill {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
 }
 
 .btn-delete-collection {
@@ -562,7 +562,7 @@
 
 .btn-floating-toggle:hover { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
 }
 
 .filter-tabs {
@@ -591,7 +591,7 @@
 
 .filter-tabs .filter-btn.active, .filter-tabs .filter-btn:hover {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
@@ -626,12 +626,12 @@
 
 .view-toggle-btn.active { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
 }
 
 .btn-primary-add {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   border: none;
   padding: 7px 12px;
   border-radius: var(--radius);
@@ -641,12 +641,13 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   white-space: nowrap;
 }
 
 .btn-primary-add:hover { 
   background: var(--accent-hover); 
+  color: var(--accent-fg);
 }
 
 .sub-header { 
@@ -666,9 +667,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(124, 58, 237, 0.2);
+  background: var(--accent-subtle);
   border: 1px solid var(--accent);
-  color: #c4b5fd;
+  color: var(--text-main);
   padding: 3px 10px;
   border-radius: 12px;
   font-size: 0.72rem;
@@ -677,9 +678,14 @@
 .active-tag-chip button { 
   background: transparent; 
   border: none; 
-  color: #fff; 
+  color: var(--text-main); 
   cursor: pointer; 
   font-weight: bold; 
+}
+
+.active-tag-chip button:hover {
+  color: var(--accent);
+  opacity: 0.8;
 }
 
 /* ----------------------------------------------------------------------------
@@ -745,7 +751,7 @@
 
 .mode-tab-btn.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -841,12 +847,12 @@
 
 .quick-radio:has(input:checked) {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
 }
 
 .btn-quick-submit {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   border: none;
   padding: 9px 14px;
   border-radius: var(--radius);
@@ -857,18 +863,19 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .btn-quick-submit:hover { 
   background: var(--accent-hover); 
+  color: var(--accent-fg);
 }
 
 .quick-tip-card {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  background: rgba(124, 58, 237, 0.14);
+  background: var(--accent-subtle);
   border: 1px solid var(--accent);
   padding: 10px 12px;
   border-radius: var(--radius);
@@ -912,7 +919,7 @@
 
 .user-msg { 
   background-color: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
   align-self: flex-end; 
 }
 
@@ -1000,7 +1007,7 @@
 
 #chat-send-btn {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   border: none;
   padding: 8px 12px;
   border-radius: var(--radius);
@@ -1010,10 +1017,11 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   font-size: 0.82rem;
 }
 
 #chat-send-btn:hover { 
   background: var(--accent-hover); 
+  color: var(--accent-fg);
 }

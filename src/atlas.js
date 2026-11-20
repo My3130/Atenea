@@ -367,7 +367,7 @@ function init3DGlobe() {
       .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
       .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
       .showAtmosphere(true)
-      .atmosphereColor('#6366f1')
+      .atmosphereColor('#e4e4e7')
       .atmosphereAltitude(0.18)
       .pointsData(globePoints)
       .pointLat(d => d.lat)

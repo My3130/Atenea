@@ -45,7 +45,7 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius);
-  background: rgba(124, 58, 237, 0.15);
+  background: var(--accent-subtle);
   border: 1px solid var(--accent);
   display: flex;
   align-items: center;
@@ -97,7 +97,7 @@
 
 .settings-subtab-btn.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
@@ -187,7 +187,7 @@
 
 .switch-toggle input:checked + .slider-round:before {
   transform: translateX(20px);
-  background-color: #ffffff;
+  background-color: var(--accent-fg);
 }
 
 .ambient-presets-grid {
@@ -218,7 +218,7 @@
 
 .ambient-card.active {
   border-color: var(--accent);
-  background: rgba(124, 58, 237, 0.18);
+  background: var(--accent-subtle);
 }
 
 .ambient-card-icon {
@@ -268,7 +268,7 @@
   height: 16px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   display: none;
   align-items: center;
   justify-content: center;
@@ -278,6 +278,7 @@
 .ambient-active-badge .lucide { 
   width: 10px; 
   height: 10px; 
+  color: var(--accent-fg);
 }
 
 .ambient-card.active .ambient-active-badge { 
@@ -308,7 +309,7 @@
 
 .btn-upload-video-label:hover { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
   border-color: var(--accent); 
 }
 
@@ -395,6 +396,6 @@
 
 .btn-export-action:hover, .btn-import-label:hover { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
   border-color: var(--accent); 
 }

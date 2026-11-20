@@ -18,7 +18,7 @@
   width: 52px;
   height: 52px;
   margin: 0 auto 14px auto;
-  background: rgba(124, 58, 237, 0.2);
+  background: var(--accent-subtle);
   border: 1px solid var(--accent);
   border-radius: 50%;
   display: flex;
@@ -188,7 +188,7 @@
   width: 38px;
   height: 38px;
   border-radius: var(--radius);
-  background: rgba(124, 58, 237, 0.18);
+  background: var(--accent-subtle);
   border: 1px solid var(--accent);
   display: flex;
   align-items: center;

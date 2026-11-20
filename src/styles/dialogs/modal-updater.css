@@ -31,9 +31,9 @@
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: rgba(139, 92, 246, 0.15);
-  color: #a78bfa;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid var(--accent);
   flex-shrink: 0;
 }
 
@@ -47,7 +47,7 @@
 .updater-version-tag {
   margin: 2px 0 0 0;
   font-size: 0.8rem;
-  color: #a78bfa;
+  color: var(--accent);
   font-weight: 500;
 }
 
@@ -116,7 +116,7 @@
 
 .updater-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  background: var(--accent);
   border-radius: 999px;
   transition: width 0.2s ease;
 }

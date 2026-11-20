@@ -169,7 +169,7 @@
       <div class="sub-header">
         <div class="stats-summary" id="stats-summary">Cargando colección...</div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <div id="active-collection-chip" class="active-tag-chip hidden" style="border-color: var(--accent); background: rgba(124, 58, 237, 0.2);">
+          <div id="active-collection-chip" class="active-tag-chip hidden" style="border-color: var(--accent); background: var(--accent-subtle);">
             <span id="active-collection-name">Colección</span>
             <button id="btn-clear-collection-filter" title="Quitar filtro de colección">✕</button>
           </div>
@@ -985,7 +985,7 @@ O bien pega un bloque JSON [ { ... } ]"></textarea>
               Comprueba si hay nuevas versiones, mejoras de rendimiento o novedades disponibles en GitHub.
             </p>
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-              <span style="font-size:0.78rem; color:var(--text-muted);">Versión instalada: <strong id="settings-installed-version" style="color:var(--text-normal, #9d4ce9);">...</strong></span>
+              <span style="font-size:0.78rem; color:var(--text-muted);">Versión instalada: <strong id="settings-installed-version" style="color:var(--accent);">...</strong></span>
               <button type="button" id="btn-check-updates-manual" class="btn-secondary" style="display:inline-flex; align-items:center; gap:8px;">
                 <i data-lucide="download-cloud"></i>
                 <span>Buscar Actualizaciones</span>
@@ -1157,14 +1157,14 @@ O bien pega un bloque JSON [ { ... } ]"></textarea>
           <div class="backup-grid">
             
             <!-- CASILLERO 1: BÓVEDA COMPLETA AUTÓNOMA (.ATENEA) -->
-            <div class="backup-card backup-vault-card" style="grid-column: 1 / -1; border-color: var(--accent); background: rgba(124, 58, 237, 0.08);">
+            <div class="backup-card backup-vault-card" style="grid-column: 1 / -1; border-color: var(--accent); background: var(--accent-subtle);">
               <div class="backup-card-header">
                 <i data-lucide="package-check" style="color:var(--accent);"></i>
                 <h4>Bóveda Completa Atenea (.atenea)</h4>
               </div>
               <p>Respaldo total: empaqueta toda tu biblioteca, colecciones, notas y <strong>el 100% de las portadas guardadas en disco</strong> en un único archivo comprimido para migrar a cualquier PC sin perder nada.</p>
               <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
-                <button id="btn-export-vault" class="btn-export-action" style="flex:1; background:var(--accent); color:#fff; border-color:var(--accent); font-weight:700;">
+                <button id="btn-export-vault" class="btn-export-action" style="flex:1; background:var(--accent); color:var(--accent-fg); border-color:var(--accent); font-weight:700;">
                   <i data-lucide="download"></i> Exportar Bóveda Completa
                 </button>
                 <label class="btn-import-label" style="flex:1;">

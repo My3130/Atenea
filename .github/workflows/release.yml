@@ -40,14 +40,27 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Atenea v__VERSION__'
           releaseBody: |
-            ## 🛠️ Atenea v0.2.8 - Árbol Celestial 3D, interruptor de hardware RAM/GPU, constelaciones selectivas, barra retráctil
+            ## 🏛️ Atenea v0.3.0 — Identidad Monocroma, Árbol Celestial y Optimización Global
 
-            Esta actualización trae mejoras de diseño
+            Atenea da el salto a la **v0.3.0** con una renovación estética integral y una arquitectura de memoria profundamente optimizada para centros culturales y bibliotecas personales de alto rendimiento.
 
-            ### ✨ Novedades
-            - **Modelo de Árbol 3D:** Se ha implementado un modelo de árbol 3D optimizado para representar la estructura de la biblioteca como una constelación. La visualización 3D de un árbol de conocimiento convierte la experiencia del usuario en algo más intuitivo y atractivo a diferencia de la representación tradicional en 2D.
-            - **Interruptor de Hardware RAM/GPU:** Se ha añadido un interruptor que permite a los usuarios elegir entre utilizar la RAM o la GPU para el procesamiento de datos. Esto permite una mayor flexibilidad y optimización del rendimiento según las capacidades del sistema del usuario. 
+            ### 🎨 Nuevo Sistema de Diseño Monocromo
+            - **Despedida del morado:** La interfaz evoluciona hacia una estética monocromática, sobria y sofisticada.
+            - **Modo Oscuro:** Color de acento platino suave con contraste profundo en grafito, diseñado para largas sesiones de lectura sin fatiga visual.
+            - **Modo Claro:** Esquema carbón grafito sobre marfil claro con riguroso cumplimiento de accesibilidad y contraste WCAG AAA.
+            - **Calendario Neutral:** Eliminados los resaltes de color invasivos en la cronología; el día actual y los estados mantienen coherencia tonal limpia.
 
-            *Actualización recomendada para todos los usuarios. Se recomienda reiniciar la aplicación después de la instalación.*
+            ### 🌲 El Árbol Celestial 3D (Consolidado)
+            - **Modelo ultraligero integrado:** Tronco escaneado por fotogrametría optimizado en Blender (1.2 MB) incluido de forma nativa offline.
+            - **Constelaciones inteligentes:** Distribución en bóveda celeste con títulos siempre legibles y conexiones temáticas por iluminación selectiva al posar el cursor (sin telarañas ni líneas invasivas).
+            - **Control de hardware:** Tarjeta de activación consciente y botón de apagado rápido para liberar memoria al instante.
+
+            ### ⚡ Optimización Integral de Memoria (RAM y GPU)
+            - **Limpieza profunda en Atlas (Globo 3D y Mapa 2D):** Eliminada la sobrecarga de mallas 3D y dependencias pesadas de fronteras en el globo, manteniendo pines limpios y destrucción formal del contexto WebGL al salir.
+            - **Consumo plano entre vistas:** Desmontaje determinista del DOM en vistas inactivas para evitar la acumulación progresiva de memoria.
+            - **Compresor automático de portadas:** Redimensionamiento silencioso de imágenes a formato WebP optimizado en disco (IndexedDB).
+            - **Gobernador de fondo:** Suspensión automática del decodificador de video ambiental al entrar a vistas 3D o minimizar la aplicación.
+
+            *Actualización mayor recomendada para todos los usuarios. Descarga el instalador (.exe o .msi) correspondiente a tu sistema.*
           releaseDraft: true
           prerelease: false

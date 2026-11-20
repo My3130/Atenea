@@ -44,7 +44,7 @@
   opacity: 0.45 !important;
   transform: scale(0.96) !important;
   border-color: var(--accent) !important;
-  box-shadow: 0 0 14px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 0 14px var(--accent-subtle-hover);
 }
 
 .wishlist-ribbon {
@@ -170,7 +170,7 @@
 
 .tag-badge:hover { 
   background-color: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
   border-color: var(--accent); 
 }
 
@@ -198,7 +198,7 @@
 
 .btn-edit-cover:hover { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
 }
 
 .btn-status-toggle {
@@ -521,7 +521,7 @@
 
 .t-toggle-btn.active { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
 }
 
 .calendar-wrapper { 
@@ -571,7 +571,7 @@
 
 .btn-cal-nav:hover { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
 }
 
 .btn-cal-today { 
@@ -611,7 +611,7 @@
 
 .cal-filter-btn.active { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
 }
 
 .calendar-grid-header { 
@@ -1019,7 +1019,7 @@
 
 .graph-filter-btn.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   font-weight: 700;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
@@ -1102,14 +1102,14 @@
 
 .proj-toggle-btn.active { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
 }
 
 .map-stats-pill { 
   font-size: 0.75rem; 
-  background: rgba(124, 58, 237, 0.18); 
+  background: var(--accent-subtle); 
   border: 1px solid var(--accent); 
-  color: var(--accent); 
+  color: var(--text-main); 
   padding: 3px 10px; 
   border-radius: 12px; 
   font-weight: 500; 
@@ -1152,7 +1152,7 @@
 
 .map-epoch-btn.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-fg);
   font-weight: 700;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
@@ -1178,7 +1178,7 @@
 
 .map-filter-btn.active { 
   background: var(--accent); 
-  color: #fff; 
+  color: var(--accent-fg); 
 }
 
 .cultural-globe-canvas, .cultural-map-canvas {
